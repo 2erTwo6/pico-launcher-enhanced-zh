@@ -2,6 +2,7 @@
 #include <memory>
 #include "core/String.h"
 #include "RomBrowserDisplaySettings.h"
+#include "SaveLocation.h"
 #include "FileAssociation.h"
 
 class AppSettings
@@ -14,6 +15,7 @@ public:
     ///        the firmware's level untouched (the default until the user
     ///        picks one in display settings).
     s8 backlightLevel = -1;
+    SaveLocation saveLocation = SaveLocation::NextToRom;
     RomBrowserDisplaySettings romBrowserDisplaySettings;
 
     std::unique_ptr<FileAssociation[]> fileAssociations;
