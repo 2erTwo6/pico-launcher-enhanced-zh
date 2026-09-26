@@ -5,6 +5,12 @@
 ### [Unreleased]
 
 #### Added
+- A saves folder. With `"saveLocation": "saves"` in `settings.json`, a DS game's save lives in a
+  `saves` folder inside the game's folder, the layout TWiLight Menu++ uses, so both launchers can
+  share one card. A save still next to the game is moved into the folder the first time the game
+  is launched, deleting the game removes the save from the folder, and `saves` folders stay out of
+  the browser. Off by default. Homebrew, DSiWare and games launched through an emulator keep
+  their saves where they were. Asked for in LNH-team/pico-launcher#63.
 - Closing the lid puts the console to sleep, and opening it wakes it where it was. From
   marlooonxdd (#23).
 

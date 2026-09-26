@@ -35,6 +35,7 @@ Everything upstream Pico Launcher offers (display modes, [custom icons, banners 
 - **Per-game launch tracking** — launch count and last-played date, kept per game; the recently played panel shows each game's date, and the statistics panel the counts of the three most launched games
 - **Approximate play time** — per game, in the favorites panel
 - **Game deletion** — from the menu, with confirmation; removes the ROM and its save
+- **A saves folder** — set `"saveLocation": "saves"` in `settings.json` and DS saves live in a `saves` folder next to the games, the layout TWiLight Menu++ uses, so both launchers can share one card; see [Usage.md](docs/Usage.md#settings)
 - **Brightness control** — set the DS Lite's backlight level from display settings
 - **Hide empty folders** — optional; folders with nothing playable inside are left out of the listing
 - **Cheats list that reads better** — the list wraps around at both ends, and X turns every cheat off at once
