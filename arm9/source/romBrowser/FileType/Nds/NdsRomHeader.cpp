@@ -29,6 +29,7 @@ bool NdsRomHeader::UsesCardSave(const FastFileRef& romFileRef)
     auto header = std::make_unique<u8[]>(HEADER_READ_SIZE);
     if (!header || !file->ReadExact(header.get(), HEADER_READ_SIZE))
     {
+        LOG_ERROR("Couldn't read the rom header, keeping the save next to the game\n");
         return false;
     }
 

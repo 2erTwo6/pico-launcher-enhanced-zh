@@ -89,7 +89,7 @@ A few things worth knowing:
 ## Deleting games
 **Delete game** in the menu deletes the highlighted game; the entry is faded while a folder is highlighted. A confirmation sheet opens first: press **X** to confirm, or A or B to cancel. Only games can be deleted, not folders.
 
-Deleting a game also deletes its save file (same name with a `.sav` extension, next to the ROM) and removes the game's entry from `gamedata.json`. Note that saves are matched by name without the extension: if `Game.gba` and `Game.nds` sit in the same folder, they share `Game.sav`, and deleting either game deletes it.
+Deleting a game also deletes its save file (same name with a `.sav` extension, next to the ROM) and removes the game's entry from `gamedata.json`. Note that saves are matched by name without the extension: if `Game.gba` and `Game.nds` sit in the same folder, they share `Game.sav`, and deleting either game deletes it. With `saveLocation` set to `saves` (see [Usage.md](/docs/Usage.md#settings)), deleting a DS game deletes its save in the `saves` folder when there is one, and a save still next to the ROM is then left alone. When the folder has none, because the game was not launched since the setting was turned on, the save next to the ROM is deleted as before. The confirmation names the file that will go.
 
 ## Cheats
 The cheat list wraps around at both ends: pressing up on the first entry jumps to the last

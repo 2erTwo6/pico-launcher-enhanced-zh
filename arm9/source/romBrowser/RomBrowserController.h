@@ -53,7 +53,10 @@ public:
     void CancelDelete() override;
     void ConfirmDelete() override;
     const char* GetDeleteRomFileName() const override { return _deleteRomFileName; }
-    const char* GetDeleteSaveFileName() const override { return _deleteHasSave ? _deleteSaveFileName : ""; }
+    const char* GetDeleteSaveFileName() const override
+    {
+        return !_deleteHasSave ? "" : _deleteSaveInFolder ? _deleteFolderSaveFileName : _deleteSaveFileName;
+    }
     void GotoSettingsScreen() override;
 
     void Update() override;
@@ -94,6 +97,11 @@ public:
         return _appSettingsService->GetAppSettings().romBrowserDisplaySettings;
     }
 
+    SaveLocation GetSaveLocation() const override
+    {
+        return _appSettingsService->GetAppSettings().saveLocation;
+    }
+
     virtual const FileInfo& GetTriggerFileInfo() const override { return _triggerFileInfo; }
 
 private:
@@ -113,7 +121,11 @@ private:
         TCHAR* buffer, u32 bufferLength) const;
     TCHAR _deleteRomFileName[256];
     TCHAR _deleteSaveFileName[256];
+    /// @brief "saves/<name>.sav", or empty when the saves folder setting does not apply.
+    TCHAR _deleteFolderSaveFileName[256];
     bool _deleteHasSave = false;
+    /// @brief Whether the save shown in the dialog is the one in the saves folder.
+    bool _deleteSaveInFolder = false;
     volatile bool _deleteCompleted = false;
 
     std::unique_ptr<SdFolder> _sdFolder;

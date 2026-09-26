@@ -211,11 +211,26 @@ void RomBrowserController::RequestDeleteSelected()
     if (dot)
         *dot = 0;
     strlcat(_deleteSaveFileName, ".sav", sizeof(_deleteSaveFileName));
-    // Existence check drives only the confirm dialog's wording; the actual
+    // With the saves folder on, the loader looks in "saves/" first, so that is the save
+    // that goes with the game when it is there. Only when the folder has none does the
+    // save next to the game go, as before: with a folder save present, the one next to
+    // it may belong to a game of another system with the same name.
+    _deleteFolderSaveFileName[0] = 0;
+    if (_appSettingsService->GetAppSettings().saveLocation == SaveLocation::SavesFolder &&
+        item.GetFileType()->UsesLoaderSave() &&
+        strlen(_deleteSaveFileName) + 6 < sizeof(_deleteFolderSaveFileName))
+    {
+        strcpy(_deleteFolderSaveFileName, "saves/");
+        strcat(_deleteFolderSaveFileName, _deleteSaveFileName);
+    }
+    // Existence checks drive only the confirm dialog's wording; the actual
     // deletion in ConfirmDelete is unconditional, so a wrong answer here
-    // never leaves the save behind.
+    // never leaves the save behind. At worst the dialog names the save next
+    // to the game while the one in the folder is what goes.
     FILINFO fileInfo;
-    _deleteHasSave = f_stat(_deleteSaveFileName, &fileInfo) == FR_OK;
+    _deleteSaveInFolder = _deleteFolderSaveFileName[0] != 0 &&
+        f_stat(_deleteFolderSaveFileName, &fileInfo) == FR_OK;
+    _deleteHasSave = _deleteSaveInFolder || f_stat(_deleteSaveFileName, &fileInfo) == FR_OK;
 
     _stateMachine.Fire(RomBrowserStateTrigger::ShowDeleteConfirm);
 }
@@ -249,8 +264,21 @@ void RomBrowserController::ConfirmDelete()
             // delete the save unconditionally: its name is derived from the
             // rom and f_unlink harmlessly returns FR_NO_FILE when there is
             // none. Do NOT gate on a main-thread existence check — SD access
-            // from that thread is unreliable and used to skip this.
-            f_unlink(_deleteSaveFileName);
+            // from that thread is unreliable and used to skip this. The saves
+            // folder goes first; only when it has nothing does the save next
+            // to the rom go, as before. Any other failure leaves both alone:
+            // the dialog named the folder save, so no other file may go.
+            FRESULT saveResult = _deleteFolderSaveFileName[0] == 0
+                ? FR_NO_PATH
+                : f_unlink(_deleteFolderSaveFileName);
+            if (saveResult == FR_NO_FILE || saveResult == FR_NO_PATH)
+            {
+                f_unlink(_deleteSaveFileName);
+            }
+            else if (saveResult != FR_OK)
+            {
+                LOG_ERROR("Couldn't delete %s (%d)\n", _deleteFolderSaveFileName, saveResult);
+            }
         }
         _deleteCompleted = true;
         return TaskResult<void>::Completed();

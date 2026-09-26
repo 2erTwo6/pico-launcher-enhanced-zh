@@ -88,6 +88,9 @@ public:
 
     virtual const RomBrowserDisplaySettings& GetRomBrowserDisplaySettings() const = 0;
 
+    /// @brief Returns where the launcher keeps the save file of a DS game.
+    virtual SaveLocation GetSaveLocation() const = 0;
+
     virtual void SetRomBrowserDisplaySettings(
         const RomBrowserDisplaySettings& romBrowserDisplaySettings) = 0;
 
