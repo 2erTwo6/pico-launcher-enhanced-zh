@@ -5,6 +5,7 @@
 #include "settings/SettingsProcess.h"
 #include "FileType/ExtensionFileTypeProvider.h"
 #include "FileType/FileType.h"
+#include "FileType/Nds/NdsRomHeader.h"
 #include "SdFolderFactory.h"
 #include "services/settings/IAppSettingsService.h"
 #include "cheats/UsrCheatRepositoryFactory.h"
@@ -656,6 +657,12 @@ void RomBrowserController::SetPicoLoaderParams() const
 // point the loader at another file, and a save must never end up somewhere unexpected.
 void RomBrowserController::SetSavesFolderPath(pload_params_t* loadParams) const
 {
+    // Homebrew and DSiWare get no card save from the loader, so no folder for them either.
+    if (!NdsRomHeader::UsesCardSave(_triggerFileInfo.GetFastFileRef()))
+    {
+        return;
+    }
+
     const char* fileName = _triggerFileInfo.GetFileName();
     const char* extension = strrchr(fileName, '.');
     u32 baseLength = extension ? extension - fileName : strlen(fileName);
@@ -703,6 +710,35 @@ void RomBrowserController::SetSavesFolderPath(pload_params_t* loadParams) const
     strcat(savePath, "/");
     strncat(savePath, fileName, baseLength);
     strcat(savePath, ".sav");
+
+    // The save that is already there decides. One in the folder is used as it is. One still
+    // next to the game is moved in: moved, not copied, so there is a single save to trust,
+    // and nothing is ever deleted. If the move fails, the game keeps the save next to it.
+    FILINFO saveInfo;
+    if (f_stat(savePath, &saveInfo) == FR_OK)
+    {
+        return;
+    }
+    char oldPath[sizeof(loadParams->savePath)];
+    memcpy(oldPath, _navigatePath, folderLength);
+    oldPath[folderLength] = 0;
+    strncat(oldPath, fileName, baseLength);
+    strcat(oldPath, ".sav");
+    if (f_stat(oldPath, &saveInfo) != FR_OK)
+    {
+        return; // a new game: the loader creates the save in the folder
+    }
+    FRESULT renameResult = f_rename(oldPath, savePath);
+    if (renameResult == FR_EXIST)
+    {
+        return; // the folder has a save after all: it wins, as above
+    }
+    if (renameResult != FR_OK)
+    {
+        LOG_ERROR("Couldn't move %s into the saves folder (%d), keeping it next to the game\n",
+            oldPath, renameResult);
+        savePath[0] = 0;
+    }
 }
 
 void RomBrowserController::LoadCheats() const
