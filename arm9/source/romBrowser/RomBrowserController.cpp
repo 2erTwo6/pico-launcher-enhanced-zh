@@ -637,12 +637,72 @@ void RomBrowserController::SetPicoLoaderParams() const
     loadParams->argumentsLength = 0;
     if (_triggerFileInfo.GetFileType()->TrySetLaunchParameters(loadParams, _navigatePath))
     {
+        if (_triggerFileInfo.GetFileType()->UsesLoaderSave() &&
+            _appSettingsService->GetAppSettings().saveLocation == SaveLocation::SavesFolder)
+        {
+            SetSavesFolderPath(loadParams);
+        }
         gProcessManager.Goto<PicoLoaderProcess>();
     }
     else
     {
         LOG_FATAL("Failed to set launch parameters.\n");
     }
+}
+
+// Points the loader at "<game folder>/saves/<game name>.sav", creating the saves folder.
+// The path stays empty, so the loader keeps the save next to the game as it does on its
+// own, when the folder can't be made or the path would not fit: a truncated path would
+// point the loader at another file, and a save must never end up somewhere unexpected.
+void RomBrowserController::SetSavesFolderPath(pload_params_t* loadParams) const
+{
+    const char* fileName = _triggerFileInfo.GetFileName();
+    const char* extension = strrchr(fileName, '.');
+    u32 baseLength = extension ? extension - fileName : strlen(fileName);
+    // _navigatePath is "<game folder>/<file name>", built by UpdateLastUsedFilepath just before
+    u32 folderLength = strlen(_navigatePath) - strlen(fileName);
+    if (folderLength == 0 || _navigatePath[folderLength - 1] != '/' ||
+        strcmp(&_navigatePath[folderLength], fileName) != 0)
+    {
+        LOG_ERROR("Unexpected launch path, keeping the save next to the game\n");
+        return;
+    }
+    // "<game folder>/" + "saves/" + base + ".sav" + terminator
+    if (folderLength + 6 + baseLength + 4 + 1 > sizeof(loadParams->savePath))
+    {
+        LOG_ERROR("Save path too long, keeping the save next to the game\n");
+        return;
+    }
+
+    char* savePath = loadParams->savePath;
+    memcpy(savePath, _navigatePath, folderLength);
+    savePath[folderLength] = 0;
+    strcat(savePath, "saves");
+
+    // Create first and look only when something is already there: a folder that exists
+    // must be recognised even if one read of the card fails, or the loader would start a
+    // second save next to the game while the real one sits in the folder.
+    FRESULT mkdirResult = f_mkdir(savePath);
+    if (mkdirResult == FR_EXIST)
+    {
+        FILINFO folderInfo;
+        if (f_stat(savePath, &folderInfo) != FR_OK || !(folderInfo.fattrib & AM_DIR))
+        {
+            LOG_ERROR("%s is not a usable folder, keeping the save next to the game\n", savePath);
+            savePath[0] = 0;
+            return;
+        }
+    }
+    else if (mkdirResult != FR_OK)
+    {
+        LOG_ERROR("Couldn't create %s (%d), keeping the save next to the game\n", savePath, mkdirResult);
+        savePath[0] = 0;
+        return;
+    }
+
+    strcat(savePath, "/");
+    strncat(savePath, fileName, baseLength);
+    strcat(savePath, ".sav");
 }
 
 void RomBrowserController::LoadCheats() const

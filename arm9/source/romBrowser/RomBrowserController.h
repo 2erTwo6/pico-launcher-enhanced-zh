@@ -144,5 +144,6 @@ private:
     void HandleGotoSettingsScreenTrigger();
     void UpdateLastUsedFilepath();
     void SetPicoLoaderParams() const;
+    void SetSavesFolderPath(pload_params_t* loadParams) const;
     void LoadCheats() const;
 };

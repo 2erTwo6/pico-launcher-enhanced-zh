@@ -50,6 +50,12 @@ public:
     /// @return The internal file info of the specified file when successful, or \c nullptr otherwise.
     virtual InternalFileInfo* CreateInternalFileInfo(const FastFileRef& fastFileRef) const { return nullptr; }
 
+    /// @brief Returns whether the loader keeps the save of a file of this type where the launch
+    ///        parameters say. Only then does the save location setting apply; a file launched
+    ///        through an emulator saves wherever the emulator does.
+    /// @return \c true when the loader manages the save, or \c false otherwise.
+    virtual bool UsesLoaderSave() const { return false; }
+
     /// @brief Tries to set the launch parameters to launch a file of this file type at the specified \p filePath.
     /// @param launchParameters The launch parameters to set.
     /// @param filePath The file that is going to be launched.

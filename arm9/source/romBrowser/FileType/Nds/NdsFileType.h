@@ -21,6 +21,8 @@ public:
         return new NdsInternalFileInfo(fastFileRef);
     }
 
+    bool UsesLoaderSave() const override { return true; }
+
     bool TrySetLaunchParameters(pload_params_t* launchParameters, const char* filePath) const override
     {
         StringUtil::Copy(launchParameters->romPath, filePath, sizeof(launchParameters->romPath));
