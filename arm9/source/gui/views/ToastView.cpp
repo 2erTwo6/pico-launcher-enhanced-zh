@@ -24,13 +24,25 @@
 // very short string from coming out narrower than the panel is tall.
 #define TEXT_PADDING_X      14
 #define MIN_WIDTH           TOAST_HEIGHT
-#define MAX_WIDTH           232
+#define MAX_WIDTH           (TEXT_WIDTH + 2 * TEXT_PADDING_X)
 
-#define TEXT_HEIGHT         12
-#define TEXT_WIDTH          (MAX_WIDTH - 2 * TEXT_PADDING_X)
+// The label box is 16 tall like every other Medium10 label: the glyphs need the
+// rows under the baseline for their descenders, and at 12 the g in "saving" lost
+// its tail. The box starts 5 rows down, which keeps the body of the text where it
+// sat, and its bottom lands on the panel's last row, which is enough for a tail.
+//
+// And 128 wide, which is a budget, not a layout choice. The label's texture is
+// as wide as the next power of two, so 128 pixels of text cost 2 KB and one
+// more would cost 4 KB - and the cover flow's covers fill the texture bank to
+// within 4 KB of its end. At 4 KB the last cover lost its top rows past the end
+// of the bank, on the DS Lite and the 3DS alike, where 3 KB had still fit.
+// Every message so far is under 110 pixels; a longer one is cut with an
+// ellipsis, not widened.
+#define TEXT_HEIGHT         16
+#define TEXT_TOP            5
+#define TEXT_WIDTH          128
 
-// The label rounds its texture up to the next power of two, so asking for more
-// than 256 pixels of width would double the vram it holds for the session.
+// Characters the label can hold; what fits on screen is TEXT_WIDTH.
 #define MAX_STRING_LENGTH   48
 
 // One pixel off each corner, and no more than one.
@@ -160,7 +172,7 @@ void ToastView::Update()
     // shorter than the floor, or longer than the panel can be - the text should
     // still sit in the middle of it rather than against its left edge.
     int textInset = std::max(TEXT_PADDING_X, ((int)_width - (int)_label->GetStringWidth()) / 2);
-    _label->SetPosition(_x + textInset, _y + (TOAST_HEIGHT - TEXT_HEIGHT) / 2);
+    _label->SetPosition(_x + textInset, _y + TEXT_TOP);
     _label->Update();
 }
 
