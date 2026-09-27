@@ -18,6 +18,7 @@ public:
         const char* fullPath, const char* lastPlayedDateTime) override;
     void RemoveEntry(const char* fileName) override;
     bool CloseOpenSession(const char* nowDateTime) override;
+    bool DiscardOpenSession() override;
     u32 GetEntryCount() const override { return _entryCount; }
     const GameDataEntry& GetEntryByIndex(u32 index) const override { return _entries[index]; }
     u32 GetVersion() const override { return _version; }
@@ -41,5 +42,6 @@ private:
     /// @brief Returns nullptr when the name cannot be stored (too long), so
     ///        callers refuse the operation instead of writing a truncated key.
     GameDataEntry* GetOrCreateEntry(const char* fileName, const char* gameCode);
+    void ClearSession();
     void Load();
 };

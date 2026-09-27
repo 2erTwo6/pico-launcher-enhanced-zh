@@ -32,7 +32,7 @@ Everything upstream Pico Launcher offers (display modes, [custom icons, banners 
 - **Recently played panel** — from the menu; tapping an entry jumps to the game
 - **Statistics panel** — totals, most-played games and the launcher version, from the menu
 - **Screenshots** — hold START for about half a second to save both screens to `/_pico/screenshots`
-- **Per-game launch tracking** — launch count and last-played date, kept per game; the recently played panel shows each game's date, and the statistics panel the counts of the three most launched games
+- **Per-game launch tracking** — launch count and last-played date, kept per game; the recently played panel shows each game's date, and the statistics panel the counts of the three most launched games; can be switched off in `settings.json`
 - **Approximate play time** — per game, in the favorites panel
 - **Game deletion** — from the menu, with confirmation; removes the ROM and its save
 - **A saves folder** — set `"saveLocation": "saves"` in `settings.json` and DS saves live in a `saves` folder next to the games, the layout TWiLight Menu++ uses, so both launchers can share one card; see [Usage.md](docs/Usage.md#settings)

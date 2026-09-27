@@ -372,10 +372,21 @@ void RomBrowserController::Update()
         case RomBrowserState::Start:
         {
             LOG_DEBUG("RomBrowserState::Start\n");
-            // a launcher boot ends the play session the last launch opened
-            TCHAR now[20];
-            FormatNowDateTime(now, sizeof(now) / sizeof(now[0]));
-            if (_gameDataService->CloseOpenSession(now))
+            // a launcher boot ends the play session the last launch opened;
+            // with tracking switched off since, the session is dropped, not
+            // credited
+            bool sessionChanged;
+            if (_appSettingsService->GetAppSettings().launchTracking)
+            {
+                TCHAR now[20];
+                FormatNowDateTime(now, sizeof(now) / sizeof(now[0]));
+                sessionChanged = _gameDataService->CloseOpenSession(now);
+            }
+            else
+            {
+                sessionChanged = _gameDataService->DiscardOpenSession();
+            }
+            if (sessionChanged)
             {
                 _gameDataService->SaveAsync(_ioTaskQueue);
             }
@@ -615,16 +626,19 @@ void RomBrowserController::BackfillFavoritePaths()
 void RomBrowserController::HandleLaunchTrigger()
 {
     LOG_DEBUG("RomBrowserStateTrigger::Launch\n");
-    char lastPlayed[20];
-    FormatNowDateTime(lastPlayed, sizeof(lastPlayed));
-    // full path into a local buffer: _navigatePath belongs to the navigation
-    // flow (same construction the favorite/completed toggles use)
-    TCHAR fullPath[256];
-    BuildCurrentFolderFilePath(_triggerFileInfo.GetFileName(), fullPath,
-        sizeof(fullPath) / sizeof(fullPath[0]));
-    _gameDataService->RecordLaunch(_triggerFileInfo.GetFileName(),
-        _triggerGameCode[0] != 0 ? _triggerGameCode : nullptr, fullPath, lastPlayed);
-    _gameDataService->SaveAsync(_ioTaskQueue);
+    if (_appSettingsService->GetAppSettings().launchTracking)
+    {
+        char lastPlayed[20];
+        FormatNowDateTime(lastPlayed, sizeof(lastPlayed));
+        // full path into a local buffer: _navigatePath belongs to the navigation
+        // flow (same construction the favorite/completed toggles use)
+        TCHAR fullPath[256];
+        BuildCurrentFolderFilePath(_triggerFileInfo.GetFileName(), fullPath,
+            sizeof(fullPath) / sizeof(fullPath[0]));
+        _gameDataService->RecordLaunch(_triggerFileInfo.GetFileName(),
+            _triggerGameCode[0] != 0 ? _triggerGameCode : nullptr, fullPath, lastPlayed);
+        _gameDataService->SaveAsync(_ioTaskQueue);
+    }
     _ioTaskQueue->Enqueue([this] (const vu8& cancelRequested)
     {
         UpdateLastUsedFilepath();

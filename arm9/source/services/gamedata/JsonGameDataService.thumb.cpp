@@ -257,12 +257,25 @@ bool JsonGameDataService::CloseOpenSession(const char* nowDateTime)
                 entry->playMinutes += (u32)minutes;
         }
     }
+    ClearSession();
+    // the cleared session (and any credited time) must be persisted
+    return true;
+}
+
+bool JsonGameDataService::DiscardOpenSession()
+{
+    if (_sessionStart.GetString()[0] == 0)
+        return false;
+    ClearSession();
+    return true;
+}
+
+void JsonGameDataService::ClearSession()
+{
     _sessionStart = "";
     _sessionGameFileName = "";
     _sessionGameCode = "";
     _version++;
-    // the cleared session (and any credited time) must be persisted
-    return true;
 }
 
 void JsonGameDataService::RemoveEntry(const char* fileName)

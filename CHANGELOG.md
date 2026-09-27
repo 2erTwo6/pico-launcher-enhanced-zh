@@ -13,6 +13,10 @@
   their saves where they were. Asked for in LNH-team/pico-launcher#63.
 - Closing the lid puts the console to sleep, and opening it wakes it where it was. From
   marlooonxdd (#23).
+- A switch for launch tracking. With `"launchTracking": false` in `settings.json` the launcher
+  keeps no record of launches: no launch count, no play time, no last played date. What was
+  recorded before stays, and favorites and completed keep working. On by default. Asked for
+  in #9.
 
 #### Changed
 - The icon buttons' selector VRAM offset starts at zero instead of whatever was in memory. Nothing

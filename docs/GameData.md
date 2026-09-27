@@ -54,6 +54,8 @@ While a play session is open, the root object holds:
 
 A session opens when a game is launched and closes at the next launcher boot. On boot, the elapsed time since `sessionStart` is added to the game's `playMinutes` if it is between 1 minute and 6 hours (longer means the console was powered off, not playing), and the session keys are removed.
 
+With `launchTracking` set to `false` in `settings.json`, a launch writes nothing here, and a session still open from before the switch is removed on the next boot without being credited.
+
 ## Identity
 **An entry belongs to one ROM file, and the file name is its identity.** Favorites, completed marks
 and play statistics all follow the file. Comparison is case-insensitive.

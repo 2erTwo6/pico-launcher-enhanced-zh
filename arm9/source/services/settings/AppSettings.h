@@ -16,6 +16,10 @@ public:
     ///        picks one in display settings).
     s8 backlightLevel = -1;
     SaveLocation saveLocation = SaveLocation::NextToRom;
+    /// @brief Whether a launch is recorded in the game data (launch count,
+    ///        play time, last played). Off, nothing about launches is
+    ///        written; favorites and completed marks keep working.
+    bool launchTracking = true;
     RomBrowserDisplaySettings romBrowserDisplaySettings;
 
     std::unique_ptr<FileAssociation[]> fileAssociations;
