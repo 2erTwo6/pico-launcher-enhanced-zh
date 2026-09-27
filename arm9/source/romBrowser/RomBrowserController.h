@@ -140,6 +140,11 @@ private:
     TCHAR _navigateSelectName[256];
     FileInfo _triggerFileInfo;
     QueueTask<void> _navigateTask;
+    /// @brief Reads, on the io thread, whether the game about to launch is for
+    ///        the DSi only. Only set on a DS, where such a game cannot run.
+    QueueTask<void> _launchCheckTask;
+    /// @brief The answer, written by the task before it completes.
+    volatile bool _launchDsiOnly = false;
     bool _saveSettingsPending = false;
     std::unique_ptr<CoverRepository> _coverRepository;
     std::unique_ptr<IconRepository> _iconRepository;
@@ -152,6 +157,8 @@ private:
     void HandleFolderLoadDoneTrigger();
     void BackfillFavoritePaths();
     void HandleLaunchTrigger();
+    /// @brief Records the launch and hands the game to the loader.
+    void BeginLaunch();
     void HandleChangeDisplayModeTrigger();
     void HandleGotoSettingsScreenTrigger();
     void UpdateLastUsedFilepath();

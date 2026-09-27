@@ -12,4 +12,11 @@ public:
     /// @return \c true when the loader uses the launcher's save path, or \c false otherwise,
     ///         including when the header can't be read.
     static bool UsesCardSave(const FastFileRef& romFileRef);
+
+    /// @brief Returns whether the rom is for the DSi only, by its unit code, so it
+    ///        cannot run on a DS or DS Lite. DSiWare titles say so too.
+    /// @param romFileRef The rom.
+    /// @return \c true for a DSi-only rom, or \c false otherwise, including when
+    ///         the header can't be read.
+    static bool IsDsiOnly(const FastFileRef& romFileRef);
 };

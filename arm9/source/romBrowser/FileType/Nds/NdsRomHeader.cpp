@@ -7,6 +7,8 @@
 // Offsets in the rom header, as in the loader's nds_header_ntr_t / nds_header_twl_t.
 #define HEADER_READ_SIZE                   0x238
 #define HEADER_MAKER_CODE                  0x10
+#define HEADER_UNIT_CODE                   0x12
+#define UNIT_CODE_DSI_ONLY                 0x03
 #define HEADER_TWL_FLAGS                   0x1C
 #define HEADER_ARM7_LOAD_ADDRESS           0x38
 #define HEADER_ARM9_AUTOLOAD_DONE_HOOK     0x70
@@ -47,4 +49,19 @@ bool NdsRomHeader::UsesCardSave(const FastFileRef& romFileRef)
     bool dsiWare = (header[HEADER_TWL_FLAGS] & 1) != 0 &&
         (readU32(header.get(), HEADER_TWL_TITLE_ID + 4) & 4) != 0;
     return !dsiWare;
+}
+
+bool NdsRomHeader::IsDsiOnly(const FastFileRef& romFileRef)
+{
+    const auto file = std::make_unique<File>();
+    file->Open(romFileRef, FA_READ);
+
+    // 0 is a DS rom, 2 a DS rom with DSi extras, 3 a rom for the DSi only
+    u8 unitCode;
+    if (file->Seek(HEADER_UNIT_CODE) != FR_OK || !file->ReadExact(&unitCode, sizeof(unitCode)))
+    {
+        LOG_ERROR("Couldn't read the rom header, launching the game as it is\n");
+        return false;
+    }
+    return unitCode == UNIT_CODE_DSI_ONLY;
 }

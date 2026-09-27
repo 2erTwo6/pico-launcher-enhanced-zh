@@ -57,6 +57,10 @@ bool RomBrowserStateMachine::FireDirect(RomBrowserStateTrigger trigger)
             .Trigger(RomBrowserStateTrigger::ChangeDisplayMode).GoesTo(RomBrowserState::DisplaySettings)
             .Trigger(RomBrowserStateTrigger::HideDisplaySettings).GoesTo(RomBrowserState::Browser)
             .Trigger(RomBrowserStateTrigger::GotoSettingsScreen).GoesTo(RomBrowserState::GoingToSettingsScreen)
+        // A launch the console cannot carry out (a DSi-only game on a DS) comes
+        // straight back, before anything about it was recorded.
+        .In(RomBrowserState::Launching)
+            .Trigger(RomBrowserStateTrigger::LaunchRefused).GoesTo(RomBrowserState::Browser)
         .Check(newState))
     {
         _prevState = _curState;

@@ -6,6 +6,8 @@
 #include "FileType/ExtensionFileTypeProvider.h"
 #include "FileType/FileType.h"
 #include "FileType/Nds/NdsRomHeader.h"
+#include "FileType/Nds/NdsFileType.h"
+#include "core/Environment.h"
 #include "SdFolderFactory.h"
 #include "services/settings/IAppSettingsService.h"
 #include "cheats/UsrCheatRepositoryFactory.h"
@@ -411,6 +413,21 @@ void RomBrowserController::Update()
             break;
         }
         case RomBrowserState::Launching:
+        {
+            if (_launchCheckTask.IsValid() && _launchCheckTask.GetTask().IsCompleted())
+            {
+                _launchCheckTask.Dispose();
+                if (_launchDsiOnly)
+                {
+                    _stateMachine.Fire(RomBrowserStateTrigger::LaunchRefused);
+                }
+                else
+                {
+                    BeginLaunch();
+                }
+            }
+            break;
+        }
         default:
         {
             break;
@@ -626,6 +643,25 @@ void RomBrowserController::BackfillFavoritePaths()
 void RomBrowserController::HandleLaunchTrigger()
 {
     LOG_DEBUG("RomBrowserStateTrigger::Launch\n");
+    // On a DS or DS Lite a DSi-only game can only end in a white screen, so it
+    // is turned away before anything about the launch is recorded. The header
+    // is read on the io thread like every other file access; the browser sits
+    // in the Launching state, with input off, until the answer is in.
+    if (!Environment::IsDsiMode() && _triggerFileInfo.GetFileType() == &NdsFileType::sInstance)
+    {
+        _launchDsiOnly = false;
+        _launchCheckTask = _ioTaskQueue->Enqueue([this] (const vu8& cancelRequested)
+        {
+            _launchDsiOnly = NdsRomHeader::IsDsiOnly(_triggerFileInfo.GetFastFileRef());
+            return TaskResult<void>::Completed();
+        });
+        return;
+    }
+    BeginLaunch();
+}
+
+void RomBrowserController::BeginLaunch()
+{
     if (_appSettingsService->GetAppSettings().launchTracking)
     {
         char lastPlayed[20];

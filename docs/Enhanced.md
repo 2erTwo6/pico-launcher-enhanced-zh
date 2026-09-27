@@ -59,6 +59,9 @@ Marks, play counts and play time all belong to the ROM file, so what the top scr
 ## Random game
 Hold SELECT and press A to launch a random game from the folder you are currently viewing. With the favorites filter active, it picks a random favorite. SELECT on its own does nothing, so the DSi brightness shortcut (SELECT + volume) stays free.
 
+## DSi-only games on a DS
+On a DS or DS Lite, a game made for the DSi only cannot run: the console never enters DSi mode, and launching it ends in a white screen. The launcher now checks the game's own header when you press A and, if the game is DSi-only, stays where it is and says `Needs a DSi or 3DS` at the bottom of the screen. DSiWare titles count as DSi-only too. On a DSi or 3DS nothing changes.
+
 ## Launch tracking and play time
 Every launch is recorded automatically, unless you switch that off (see below). The launch count and play time used to show at the top-right of the top screen (`3x 2h05`, or `3x · 16 Jul` before any play time was recorded); that text is switched off in this version because the play time overstates, as explained below. The data is still kept. The favorite heart and the completed check now sit above the game's icon, astride the card's edge, where a gold star also marks the most launched game, the one that heads the statistics panel.
 

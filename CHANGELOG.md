@@ -24,6 +24,9 @@
   marlooonxdd (#24).
 
 #### Fixed
+- On a DS or DS Lite, a game made for the DSi only is no longer launched into a white screen:
+  the launcher says `Needs a DSi or 3DS` and stays in the browser. Nothing changes on
+  a DSi or 3DS. Promised in #22.
 - Custom covers with fewer than 256 colors, or saved with a newer BMP header as GIMP does, are
   drawn as they are instead of as colored noise, and covers saved top to bottom are no longer
   upside down. A cover or icon the launcher can't read gives way to the next one in line, so it
