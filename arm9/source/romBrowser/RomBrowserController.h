@@ -91,6 +91,7 @@ public:
     }
 
     void SetBacklightLevel(int level) override;
+    bool HasBacklightLevels() const override;
 
     const RomBrowserDisplaySettings& GetRomBrowserDisplaySettings() const override
     {

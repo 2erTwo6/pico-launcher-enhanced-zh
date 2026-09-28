@@ -29,6 +29,7 @@
 #include "gui/font/nitroFont2.h"
 #include "picoLoaderBootstrap.h"
 #include "rtcIpc.h"
+#include "backlightIpc.h"
 
 ProcessManager gProcessManager;
 ILogger* gLogger;
@@ -177,6 +178,7 @@ int main(int argc, char* argv[])
     while (ipc_getArm7SyncBits() != 7);
 
     rtc_init();
+    backlight_init();
 
     if (argc >= 1)
     {

@@ -24,6 +24,8 @@
   marlooonxdd (#24).
 
 #### Fixed
+- The brightness row in display settings only shows on a DS Lite. On an original DS, a DSi, or a 3DS
+  running from a DSpico, its four levels did nothing (#27).
 - On a DS or DS Lite, a game made for the DSi only is no longer launched into a white screen:
   the launcher says `Needs a DSi or 3DS` and stays in the browser. Nothing changes on
   a DSi or 3DS. Promised in #22.

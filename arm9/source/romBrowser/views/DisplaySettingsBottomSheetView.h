@@ -33,6 +33,10 @@ protected:
 
 private:
     DisplaySettingsViewModel* _viewModel;
+    /// @brief Whether the console has backlight levels, read once when the
+    ///        sheet is made. Without them the brightness row is never added to
+    ///        the sheet, so neither drawing nor focus may reach it.
+    bool _hasBacklightLevels;
 
     SharedPtr<Label2DView> _titleLabel;
     SharedPtr<IconButton2DView> _themeButton;

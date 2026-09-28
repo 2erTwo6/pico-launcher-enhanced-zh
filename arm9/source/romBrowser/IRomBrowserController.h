@@ -98,6 +98,9 @@ public:
     ///        picked one (the firmware's level is left untouched then).
     virtual int GetBacklightLevel() const = 0;
     virtual void SetBacklightLevel(int level) = 0;
+    /// @brief Whether this console has backlight levels to set (the DS Lite
+    ///        does; the original DS, the DSi and the 3DS do not).
+    virtual bool HasBacklightLevels() const = 0;
 
     virtual const FileInfo& GetTriggerFileInfo() const = 0;
 };

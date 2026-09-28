@@ -353,6 +353,11 @@ void RomBrowserController::SetBacklightLevel(int level)
     backlight_setLevel(level);
 }
 
+bool RomBrowserController::HasBacklightLevels() const
+{
+    return backlight_hasLevels();
+}
+
 void RomBrowserController::Update()
 {
     if (_deleteCompleted)

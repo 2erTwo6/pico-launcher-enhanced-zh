@@ -69,6 +69,7 @@ DisplaySettingsBottomSheetView::DisplaySettingsBottomSheetView(
     DisplaySettingsViewModel* viewModel, const MaterialColorScheme* materialColorScheme,
     const IFontRepository* fontRepository)
     : _viewModel(viewModel)
+    , _hasBacklightLevels(viewModel->HasBacklightLevels())
     , _titleLabel(Label2DView::CreateShared(128, 16, 25, fontRepository->GetFont(FontType::Medium11)))
     , _themeButton(IconButton2DView::CreateShared(
         IconButtonView::Type::Standard,
@@ -105,8 +106,14 @@ DisplaySettingsBottomSheetView::DisplaySettingsBottomSheetView(
     AddChildTail(_layoutLabel.GetPointer());
     _sortingLabel->SetText(u"Sorting");
     AddChildTail(_sortingLabel.GetPointer());
+    // On a console without the DS Lite's levels the brightness row is left out
+    // rather than offering four buttons that do nothing (issue #27), which is
+    // how the sheet looked before the row existed. The label and buttons are
+    // still made, so the vram and layout code need no special case; they are
+    // just never added to the sheet, and MoveFocus never moves down to them.
     _brightnessLabel->SetText(u"Light");
-    AddChildTail(_brightnessLabel.GetPointer());
+    if (_hasBacklightLevels)
+        AddChildTail(_brightnessLabel.GetPointer());
 
     for (auto& layoutOption : _layoutOptions)
     {
@@ -123,7 +130,8 @@ DisplaySettingsBottomSheetView::DisplaySettingsBottomSheetView(
     for (auto& brightnessOption : _brightnessOptions)
     {
         brightnessOption = CreateBrightnessOptionIconButton();
-        AddChildTail(brightnessOption.GetPointer());
+        if (_hasBacklightLevels)
+            AddChildTail(brightnessOption.GetPointer());
     }
 }
 
@@ -400,6 +408,9 @@ SharedPtr<View> DisplaySettingsBottomSheetView::MoveFocus(const SharedPtr<View>&
             }
             else //if (direction == FocusMoveDirection::Down)
             {
+                // nothing below the sorting row on a console without levels
+                if (!_hasBacklightLevels)
+                    return nullptr;
                 if (idx >= (int)_brightnessOptions.size())
                     idx = _brightnessOptions.size() - 1;
                 return _brightnessOptions[idx];

@@ -62,6 +62,11 @@ public:
         _romBrowserController->SetBacklightLevel(level);
     }
 
+    bool HasBacklightLevels() const
+    {
+        return _romBrowserController->HasBacklightLevels();
+    }
+
     void Close()
     {
         _romBrowserController->HideDisplaySettings();

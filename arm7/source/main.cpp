@@ -61,6 +61,23 @@ static volatile u8 sPendingBacklight = 0;
 static u8 sLidClosedFrames = 0;
 static bool sLidWasClosed = false;
 
+/// @brief Whether this console has the DS Lite's four backlight levels on the
+///        PMIC. From GBATEK ("DS Power Management Device"): the DS Lite's
+///        register 4 reads back 4 in its high bits and registers 5 to 7 mirror
+///        it; on the original DS, registers 4 and up mirror 0 to 3, so register
+///        4 is the control register there; a DSi reads 41h in register 4 too,
+///        in DS mode as in DSi mode, but 00h in register 5, and its backlight
+///        belongs to the MCU. A 3DS in DSi mode passes the register 4 test as
+///        well (seen on hardware, issue #27), so DSi mode never counts.
+static bool hasPmicBacklightLevels()
+{
+    if (isDSiMode())
+        return false;
+    u8 levels = pmic_readRegister(PMIC_REG_BACKLIGHT);
+    u8 mirror = pmic_readRegister(PMIC_REG_BACKLIGHT + 1);
+    return (levels & 0xF0) == 0x40 && (mirror & 0xF0) == 0x40;
+}
+
 // BIOS sleep turns the DS Lite backlight off. Keep the level that was active
 // before sleeping so it can be restored immediately after the lid wakes the
 // console. On the original DS this register mirrors the control register, so
@@ -129,7 +146,7 @@ static void checkLidSleep()
         // Capture the current DS Lite backlight level before BIOS sleep
         // powers the display down.
         const u8 backlight = pmic_readRegister(PMIC_REG_BACKLIGHT);
-        if ((backlight & 0xF0) == 0x40)
+        if (hasPmicBacklightLevels())
         {
             sSleepBacklightLevel = backlight & PMIC_BACKLIGHT_MASK;
             sSleepBacklightValid = true;
@@ -154,22 +171,37 @@ static void vcountIrq(u32 irqMask)
     rtos_signalEvent(&sVCountEvent);
 }
 
+/// @brief Set when the ARM9 asked whether this console has backlight levels;
+///        answered from the main thread like the level itself, since the PMIC
+///        shares the SPI bus with the touch screen.
+static volatile u8 sBacklightAskPending = 0;
+
 static void backlightIpcHandler(u32 channel, u32 data, void* arg)
 {
+    if (data & IPC_PMIC_ASK_LEVELS)
+    {
+        sBacklightAskPending = 1;
+        return;
+    }
     sPendingBacklight = (data & PMIC_BACKLIGHT_MASK) + 1;
 }
 
 static void applyPendingBacklight()
 {
+    if (mem_swapByte(0, &sBacklightAskPending) != 0)
+    {
+        // the same test the level write relies on below
+        ipc_sendFifoMessage(IPC_CHANNEL_PMIC, hasPmicBacklightLevels() ? 1 : 0);
+    }
     u8 pending = mem_swapByte(0, &sPendingBacklight);
     if (pending != 0)
     {
         u8 backlight = pmic_readRegister(PMIC_REG_BACKLIGHT);
-        // DS Lite only, where bits 4-7 of the backlight register read back
-        // as 4. On the original DS registers 4..7F are MIRRORS of 0..3, so
-        // this read actually hit the control register — writing it back
-        // with modified low bits would clobber the sound amplifier there.
-        if ((backlight & 0xF0) == 0x40)
+        // DS Lite only. On the original DS registers 4..7F are MIRRORS of
+        // 0..3, so this read actually hit the control register — writing it
+        // back with modified low bits would clobber the sound amplifier there.
+        // On a DSi or 3DS the write would land on bits that do nothing.
+        if (hasPmicBacklightLevels())
         {
             pmic_writeRegister(PMIC_REG_BACKLIGHT,
                 (backlight & ~PMIC_BACKLIGHT_MASK) | (pending - 1));

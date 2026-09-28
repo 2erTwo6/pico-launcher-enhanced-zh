@@ -111,7 +111,7 @@ starting a speedrun.
 ## Screen brightness (DS Lite)
 The display settings sheet (gear button in the app bar) has a **Light** row with the DS Lite's four backlight levels. Tapping a level applies it immediately, and the choice is remembered and restored on every boot — it also stays active inside the game you launch, until the console powers off.
 
-Until you pick a level the launcher leaves the firmware's brightness untouched. The original DS has no brightness levels (the setting does nothing there), and the DSi manages brightness through its own system menu.
+Until you pick a level the launcher leaves the firmware's brightness untouched. On an original DS, a DSi, or a 3DS running the launcher from a DSpico, the row is not shown: the original DS has no brightness levels, and the DSi and 3DS set brightness from their own system menu.
 
 ## Hide empty folders
 The display settings sheet has a folder toggle that hides folders containing no visible games, homebrew or media of their own (banner, BGM and other system files don't count as content). It's off by default; toggling it refreshes the folder you're currently viewing immediately.
