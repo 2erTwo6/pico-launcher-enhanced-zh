@@ -120,34 +120,39 @@ protected:
         , _action(nullptr), _actionArg(nullptr), _type(type), _state(state)
         , _materialColorScheme(materialColorScheme) { }
 
+    // One rule for every icon button, in the 2D and the 3D view alike, so that
+    // what a button looks like always means the same thing:
+    //  - the circle says SELECTED: a selected button sits on the container
+    //    tone (secondaryContainer), an unselected one on its resting circle
+    //    (Tonal) or on nothing at all (Standard);
+    //  - FOCUS takes the icon to the theme's accent (primary) and lays a light
+    //    veil of that accent over whatever circle the button has (Material 3's
+    //    focus state layer); a Standard button with no circle of its own gets
+    //    just the veil. The veil is faint on purpose: the circle underneath
+    //    still says whether the button is selected.
+    // Focus used to repaint the circle in the container tone instead, which
+    // made a focused option and a selected one the same light circle.
+
+    /// @brief Whether the button has a circle of its own: always for Tonal and
+    ///        Filled, and for Standard only while it is selected.
     bool IsCircleBackgroundVisible() const;
+
+    /// @brief The circle to draw this frame: the button's own circle, veiled
+    ///        towards the accent while focused, or just the veil for a button
+    ///        with no circle of its own. False when nothing is drawn.
+    bool GetDrawnCircleColor(Rgb<8, 8, 8>& color) const;
     md::sys::color GetCircleBackgroundColor() const;
     md::sys::color GetForegroundColor() const;
 
-    /// @brief Fill color of the circle behind a focused button. Both the 2D and
-    ///        the 3D button share this (the app bar uses one of them and the
-    ///        display settings sheet the other, depending on the theme) so focus
-    ///        cannot end up looking different in the two places.
-    ///
-    ///        secondaryContainer normally - the same tone the display settings
-    ///        sheet uses for a selected option, so focus reads the same way in
-    ///        both places. The exception is a button that is ALREADY selected:
-    ///        it draws secondaryContainer at rest (see GetCircleBackgroundColor),
-    ///        so focusing it has to move to another tone or the two facts become
-    ///        one pixel-identical circle - which left the hide-empty-folders
-    ///        toggle with no readable state at all, since pressing it changed
-    ///        nothing on screen while it had focus.
-    ///        App bar buttons are never selected, so there they are always the
-    ///        first tone.
-    md::sys::color GetFocusFillColor() const
-    {
-        return _state == State::ToggleSelected ? md::sys::color::primary
-                                               : md::sys::color::secondaryContainer;
-    }
-
-    /// @brief Icon tint while focused. An active filter still wins, so a red
-    ///        heart or green check keeps saying so; otherwise the icon flips to
-    ///        onPrimary, which is the tone guaranteed to be readable on top of
-    ///        GetFocusFillColor().
+    /// @brief Icon tint while focused (or pressed): the theme's accent. An icon
+    ///        colour override still wins; none is set today. There is no Filled
+    ///        button either: its selected circle IS the accent, so one would need
+    ///        a focus look of its own.
     Rgb<8, 8, 8> GetFocusIconColor() const;
+
+    /// @brief The icon tint for the current frame: focused or resting.
+    Rgb<8, 8, 8> GetDrawnIconColor() const
+    {
+        return _isFocused || _penDown ? GetFocusIconColor() : GetIconColor();
+    }
 };

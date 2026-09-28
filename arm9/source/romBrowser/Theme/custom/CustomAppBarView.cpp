@@ -14,8 +14,8 @@ CustomAppBarView::CustomAppBarView(int x, int y, Orientation orientation,
     {
         _buttons[i] = IconButton3DView::CreateShared(
             IconButtonView::Type::Tonal,
-            // the unselected tone at rest, so the focus circle (which uses the
-            // selected tone, matching the display settings sheet) stands out
+            // never selected: focus shows as the accent icon and veil, the rule
+            // every icon button follows (see IconButtonView.h)
             IconButtonView::State::ToggleUnselected,
             md::sys::color::inverseOnSurface,
             materialColorScheme);

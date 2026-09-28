@@ -107,13 +107,19 @@ void MenuItemView::Draw(GraphicsContext& graphicsContext)
         }
     }
 
-    // Faded when it cannot act, its own colour while a filter is on, plain otherwise.
+    // Faded when it cannot act, its own colour while a filter is on, plain
+    // otherwise. Focus also takes the icon to the accent while the entry can
+    // act, the same rule the icon buttons follow (see IconButtonView.h), on top
+    // of the bar; a disabled entry keeps its faded icon. The name keeps its
+    // colour, so an active filter still reads as on while focused.
     Rgb<8, 8, 8> tint = _materialColorScheme->onSurfaceVariant;
     Rgb<8, 8, 8> nameColor = _materialColorScheme->onSurface;
     if (!_enabled)
         tint = nameColor = _materialColorScheme->outline;
     else if (_active)
         tint = nameColor = _activeColor;
+    if (_enabled && IsFocused())
+        tint = _materialColorScheme->primary;
 
     _nameLabel->SetBackgroundColor(back);
     _nameLabel->SetForegroundColor(nameColor);

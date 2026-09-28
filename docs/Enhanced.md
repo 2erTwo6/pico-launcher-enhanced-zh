@@ -114,7 +114,7 @@ The display settings sheet (gear button in the app bar) has a **Light** row with
 Until you pick a level the launcher leaves the firmware's brightness untouched. On an original DS, a DSi, or a 3DS running the launcher from a DSpico, the row is not shown: the original DS has no brightness levels, and the DSi and 3DS set brightness from their own system menu.
 
 ## Hide empty folders
-The display settings sheet has a folder toggle that hides folders containing no visible games, homebrew or media of their own (banner, BGM and other system files don't count as content). It's off by default; toggling it refreshes the folder you're currently viewing immediately.
+The display settings sheet has a folder toggle that hides folders containing no visible games, homebrew or media of their own (banner, BGM and other system files don't count as content). It's off by default; toggling it refreshes the folder you're currently viewing immediately. While it is on, its circle takes the same color as the chosen options below it.
 
 Subfolders are followed a few levels deep, so a folder containing only other empty folders is hidden too. Launcher support folders (names starting with `_`) are always kept.
 

@@ -19,6 +19,11 @@
   in #9.
 
 #### Changed
+- Focus and selection look the same way on every button. The chosen option keeps its colored
+  circle, as before, and the button you are on now has its icon in the theme's accent color and
+  a light tint of that color behind it. Focusing an option that was not chosen used to paint it
+  like a chosen one. The menu's rows follow the same rule, with the accent icon on top of their
+  highlight bar.
 - The icon buttons' selector VRAM offset starts at zero instead of whatever was in memory. Nothing
   drew before it was set, so nothing changes on screen; it is an uninitialised member less. From
   marlooonxdd (#24).
