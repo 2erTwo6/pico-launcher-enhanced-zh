@@ -41,10 +41,10 @@ name starts with an article or a number is filed under that, not under its title
 L and R keep paging in the cheats, favorites and recently played lists.
 
 ## Favorites
-Press X on a highlighted game to mark it as a favorite (press again to unmark). Favorites show a small heart on the top screen when highlighted. The mark belongs to that ROM **file**: moving it to another folder keeps it, renaming it starts over, and a second copy of the same game is marked separately — see [Data storage](#data-storage) if a mark is not where you expect it.
+Press X on a highlighted game to mark it as a favorite (press again to unmark). Favorites show a small heart on the top screen when highlighted. The mark belongs to that ROM **file**: moving it to another folder keeps it, renaming it starts over, and a second copy of the same game is marked separately. See [Data storage](#data-storage) if a mark is not where you expect it.
 
 ## Favorites panel
-**Favorites** in the menu opens a panel listing your favorites from **every** folder, alphabetically, each with its total play time — handy when the collection is spread across many folders. Tap an entry (or highlight it and press A) to jump to that game's folder with the game preselected; press B to close.
+**Favorites** in the menu opens a panel listing your favorites from **every** folder, alphabetically, each with its total play time, handy when the collection is spread across many folders. Tap an entry (or highlight it and press A) to jump to that game's folder with the game preselected; press B to close.
 
 Favorites marked before this feature existed appear in the panel after you toggle them again or launch them once (the panel needs the game's stored path). An entry whose file has moved or is gone still appears, but selecting it does nothing instead of jumping to the card root; re-mark or launch the game from its new location to update it.
 
@@ -52,7 +52,7 @@ Favorites marked before this feature existed appear in the panel after you toggl
 Hold X on a highlighted game for about half a second to mark it as completed (hold again to unmark). Completed games show a small green check on the top screen when highlighted, next to the heart. Like favorites, the mark belongs to the ROM file.
 
 ## Favorites and completed filters
-**Only favorites** in the menu filters the browser down to favorites, and **Only completed** to completed games. Each row says `on` while its filter is active, in red and green, and the browser behind it updates as soon as the menu closes. With both filters on, only games that are favorite *and* completed remain. The filters apply per folder — folders themselves always stay visible.
+**Only favorites** in the menu filters the browser down to favorites, and **Only completed** to completed games. Each row says `on` while its filter is active, in red and green, and the browser behind it updates as soon as the menu closes. With both filters on, only games that are favorite *and* completed remain. The filters apply per folder, and folders themselves always stay visible.
 
 Marks, play counts and play time all belong to the ROM file, so what the top screen shows and what the filter matches are always the same thing (see [GameData.md](GameData.md)). Two copies of a game are marked separately, and a ROM hack no longer inherits its base game's mark. Renaming a ROM outside the launcher starts it over, and games whose file name is longer than 96 bytes cannot be marked at all (accented characters count double).
 
@@ -66,7 +66,7 @@ On a DS or DS Lite, a game made for the DSi only cannot run: the console never e
 Every launch is recorded automatically, unless you switch that off (see below). The launch count and play time used to show at the top-right of the top screen (`3x 2h05`, or `3x · 16 Jul` before any play time was recorded); that text is switched off in this version because the play time overstates, as explained below. The data is still kept. The favorite heart and the completed check now sit above the game's icon, astride the card's edge, where a gold star also marks the most launched game, the one that heads the statistics panel.
 
 Play time is approximate: a session starts when a game is launched and ends the next time the launcher boots. Because of that:
-- Sessions longer than 6 hours are discarded — that was a power-off, not a play session.
+- Sessions longer than 6 hours are discarded: that was a power-off, not a play session.
 - Time spent in sleep mode counts as play time.
 - A session is lost if the console is powered off without booting back into the launcher.
 
@@ -104,12 +104,12 @@ first entry still moves to the back button, as before; the wrap happens where th
 nothing above the list to move to.
 
 The sheet also shows a small `X: all off` hint next to the cheat description while cheats
-are listed. Pressing X disables every cheat at once — the launcher supported this already,
+are listed. Pressing X disables every cheat at once. The launcher supported this already,
 but nothing on screen said so. Handy to make sure no code is active before going online or
 starting a speedrun.
 
 ## Screen brightness (DS Lite)
-The display settings sheet (gear button in the app bar) has a **Light** row with the DS Lite's four backlight levels. Tapping a level applies it immediately, and the choice is remembered and restored on every boot — it also stays active inside the game you launch, until the console powers off.
+The display settings sheet (gear button in the app bar) has a **Light** row with the DS Lite's four backlight levels. Tapping a level applies it immediately, and the choice is remembered and restored on every boot. It also stays active inside the game you launch, until the console powers off.
 
 Until you pick a level the launcher leaves the firmware's brightness untouched. On an original DS, a DSi, or a 3DS running the launcher from a DSpico, the row is not shown: the original DS has no brightness levels, and the DSi and 3DS set brightness from their own system menu.
 
@@ -118,17 +118,17 @@ The display settings sheet has a folder toggle that hides folders containing no 
 
 Subfolders are followed a few levels deep, so a folder containing only other empty folders is hidden too. Launcher support folders (names starting with `_`) are always kept.
 
-Emptiness means "has nothing in it", independently of the favorites and completed filters. With one of those filters on you can therefore still see a folder that turns out to hold nothing matching it — checking the filters here meant reading every ROM in every folder on each navigation, which was slow enough that folders started reappearing.
+Emptiness means "has nothing in it", independently of the favorites and completed filters. With one of those filters on you can therefore still see a folder that turns out to hold nothing matching it. Checking the filters here meant reading every ROM in every folder on each navigation, which was slow enough that folders started reappearing.
 
 ## Per-folder music
-Place a `bgm.bcstm` file directly inside a folder to give it its own background music. It uses the same DSP-ADPCM `.bcstm` format as theme music (see [Themes](Themes.md)) and supports looping. The music starts when you enter the folder and switches back to the theme music when you leave. Each folder is checked independently — subfolders do not inherit their parent's music.
+Place a `bgm.bcstm` file directly inside a folder to give it its own background music. It uses the same DSP-ADPCM `.bcstm` format as theme music (see [Themes](Themes.md)) and supports looping. The music starts when you enter the folder and switches back to the theme music when you leave. Each folder is checked independently: subfolders do not inherit their parent's music.
 
 The `bgm.bcstm` file itself is not shown in the rom browser (file extensions without an association are hidden).
 
 ## Time-of-day theme backgrounds
 Custom themes can provide night variants of their backgrounds: place `topbg_night.bin` and/or `bottombg_night.bin` next to `topbg.bin` and `bottombg.bin` in the theme folder (same 256x192, 15 bpp format). Between 20:00 and 6:59 the night variants are used when present. The time is checked when the launcher starts. Delete the `_night` files to disable the effect.
 
-`tools/make_night_bg.py` can generate night variants from a theme's existing backgrounds — see [Tools.md](Tools.md).
+`tools/make_night_bg.py` can generate night variants from a theme's existing backgrounds; see [Tools.md](Tools.md).
 
 ## Data storage
 Favorites, completed marks, launch counts, play time and the recents list are all stored in a single file, `/_pico/gamedata.json`, written by the launcher itself. Saves are atomic, and if the file ever fails to parse the launcher refuses to overwrite it rather than starting over. Deleting the file resets all favorites and statistics.
@@ -139,7 +139,7 @@ Favorites, completed marks, launch counts, play time and the recents list are al
 |---|---|
 | A game lost its heart and its play time | The file was renamed outside the launcher. The launcher sees a different file, so it starts over. The old entry stays in the file, unused |
 | The same game in two folders has separate favorites | They are two files. Marking one does not mark the other |
-| A ROM hack does not inherit the base game's marks | Same reason — different files, even though they share an internal game code |
+| A ROM hack does not inherit the base game's marks | Same reason: different files, even though they share an internal game code |
 | Two copies with the *same* file name share one entry | The name is the identity, so same name means same entry. Deleting one through the launcher removes the entry both were using |
 | Pressing X does nothing on some game | Its file name is longer than 96 bytes, which cannot be stored (accented characters count as two). The launcher logs it |
 | A favorite is missing from the favorites panel | The panel only lists entries with a stored path. Marks made before that existed get one the next time you launch or re-mark the game. Entries whose file has moved or is gone are still listed, but selecting them does nothing |

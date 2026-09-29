@@ -37,7 +37,7 @@ Same idea for systems without game codes: downloads missing covers matched by fi
 python3 tools/fetch_covers.py gb gbc gen [--sd /Volumes/DSPICO] [--dry-run]
 ```
 
-Matching for both fetchers is exact name first, then prefix, then fuzzy — check the output for wrong guesses on numbered series.
+Matching for both fetchers is exact name first, then prefix, then fuzzy. Check the output for wrong guesses on numbered series.
 
 ## make_banner.py
 Builds a folder `banner.bnr` (see [Customization](Customization.md)): a custom title plus a 32x32 icon, taken losslessly from another ROM's banner or quantized from an image.

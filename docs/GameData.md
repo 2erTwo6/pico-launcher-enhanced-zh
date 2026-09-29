@@ -1,5 +1,5 @@
 # Game Data File
-Pico Launcher Enhanced stores per-game data (favorites, launch counts, play time — see [Enhanced.md](Enhanced.md)) in `/_pico/gamedata.json`. This document specifies the format for external tool authors.
+Pico Launcher Enhanced stores per-game data (favorites, launch counts, play time; see [Enhanced.md](Enhanced.md)) in `/_pico/gamedata.json`. This document specifies the format for external tool authors.
 
 Regular users never need to edit this file. Deleting it simply resets all favorites and statistics.
 
@@ -29,15 +29,15 @@ Regular users never need to edit this file. Deleting it simply resets all favori
 ```
 
 ## The `games` object
-Each key in `games` is a file name (not a path). All keys inside an entry are optional — the launcher omits any key holding its default value:
+Each key in `games` is a file name (not a path). All keys inside an entry are optional. The launcher omits any key holding its default value:
 
 | Key | Type | Written when | Meaning |
 |---|---|---|---|
-| `gameCode` | string | non-empty | Internal game code from the NDS/GBA header, stored as information only — it is never used to identify an entry. Written when it is printable ASCII and not the `####` toolchain placeholder (homebrew ROMs often carry garbage or the placeholder there). |
-| `favorite` | bool | `true` | Marked as favorite. Absent means not a favorite — `false` is never written. |
-| `completed` | bool | `true` | Marked as completed (finished). Absent means not completed — `false` is never written. |
+| `gameCode` | string | non-empty | Internal game code from the NDS/GBA header, stored as information only: it is never used to identify an entry. Written when it is printable ASCII and not the `####` toolchain placeholder (homebrew ROMs often carry garbage or the placeholder there). |
+| `favorite` | bool | `true` | Marked as favorite. Absent means not a favorite; `false` is never written. |
+| `completed` | bool | `true` | Marked as completed (finished). Absent means not completed; `false` is never written. |
 | `launchCount` | number | > 0 | How many times the game was launched. |
-| `playMinutes` | number | > 0 | Accumulated play time in minutes (approximate — see below). |
+| `playMinutes` | number | > 0 | Accumulated play time in minutes (approximate, see below). |
 | `lastPlayed` | string | non-empty | `"YYYY-MM-DD HH:MM"`, 24-hour clock. Lexicographic order equals chronological order, so tools can sort these as plain strings. |
 | `path` | string | non-empty | Full path of the file at its last launch. Used by the recently played panel to navigate back to the game. |
 
@@ -71,8 +71,8 @@ and play statistics all follow the file. Comparison is case-insensitive.
   resolves).
 
 Earlier versions resolved entries by `gameCode` first and re-keyed them to whatever file was used last.
-That made a game's heart appear on every copy while the browser filter — which only ever sees file
-names — could not match them, so filtering by favorites could come up empty. Worse, marking such a
+That made a game's heart appear on every copy while the browser filter, which only ever sees file
+names, could not match them, so filtering by favorites could come up empty. Worse, marking such a
 file toggled the flag on the *other* copy's entry instead of creating its own.
 
 ## Limits
@@ -95,12 +95,12 @@ Years in `lastPlayed` are written as `20YY`; dates before the year 2000 do not p
 - **Saves are atomic.** The launcher writes `/_pico/gamedata.tmp` and renames it over `gamedata.json`
   only once it is complete, so losing power mid-save leaves the previous file intact. On the next boot a
   leftover `gamedata.tmp` is deleted when `gamedata.json` is present, but **promoted to
-  `gamedata.json` when it is missing** — a crash between the two steps would otherwise leave the temp
+  `gamedata.json` when it is missing**: a crash between the two steps would otherwise leave the temp
   file as the only surviving copy. Do not delete it blindly.
 - **If the file cannot be parsed, the launcher refuses to save for the rest of that session** and logs
   the error, rather than overwriting your data with the little it managed to read. Fix or remove the
   file to start saving again. (Earlier versions overwrote it, so a tool writing invalid JSON wiped
   everything.)
-- Duplicate `gameCode` values are fine — entries are never merged by code. Entry keys (file names)
+- Duplicate `gameCode` values are fine: entries are never merged by code. Entry keys (file names)
   must be unique, which JSON already guarantees.
 - The launcher parses the file with a bounded memory budget of 96 KB (about three times the file size); files larger than roughly 32 KB may fail to load. In practice this fits several hundred entries.
