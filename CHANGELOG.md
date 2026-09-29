@@ -2,7 +2,7 @@
 
 ## Enhanced fork
 
-### [Unreleased]
+### [enhanced-v1.9.0]
 
 #### Added
 - A saves folder. With `"saveLocation": "saves"` in `settings.json`, a DS game's save lives in a
