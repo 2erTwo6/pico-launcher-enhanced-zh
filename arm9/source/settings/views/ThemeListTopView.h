@@ -15,9 +15,6 @@ public:
     ThemeListTopView(SharedPtr<ThemeListViewModel> viewModel, const MaterialColorScheme* materialColorScheme,
         const IFontRepository* fontRepository);
 
-    void InitVram(const VramContext& vramContext) override;
-    void Update() override;
-    void Draw(GraphicsContext& graphicsContext) override;
     void VBlank() override;
 
     Rectangle GetBounds() const override
@@ -29,9 +26,4 @@ private:
     SharedPtr<ThemeListViewModel> _viewModel;
     int _lastSelectedItem = -1;
     SharedPtr<Label2DView> _noPreviewLabel;
-    /// Version and build, bottom-right. Not a child: the preview is a background
-    /// at priority 0 that covers every sprite the container draws at 2, which is
-    /// how "No preview" disappears under a preview, so this one is drawn on its
-    /// own at priority 0 to stay on top of it.
-    SharedPtr<Label2DView> _versionLabel;
 };

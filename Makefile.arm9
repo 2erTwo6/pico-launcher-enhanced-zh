@@ -25,7 +25,7 @@ AUDIODIRS	:=
 DEFINES		:= -DLIBTWL_ARM9
 
 # The commit this is built from, for the version line on the boot page and in
-# the theme selector, with a "+" when the tree has uncommitted changes. Left
+# the about sheet, with a "+" when the tree has uncommitted changes. Left
 # out, quietly, when there is no git or no repository: the version still shows,
 # without a hash.
 GIT_HASH	:= $(shell git rev-parse --short=7 HEAD 2>/dev/null)

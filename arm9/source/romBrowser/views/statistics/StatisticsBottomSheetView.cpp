@@ -85,8 +85,8 @@ StatisticsBottomSheetView::StatisticsBottomSheetView(SharedPtr<StatisticsViewMod
 
     char text[144];
 
-    // Just the version here; the build hash is the boot page's and the theme
-    // selector's to show.
+    // Just the version here; the build hash is the boot page's and the about
+    // sheet's to show.
     FormatLauncherVersion(text, sizeof(text), false);
     _versionLabel = AddLabel(fontRepository, FontType::Medium7_5, VERSION_WIDTH, 32, text, Alignment::End);
 

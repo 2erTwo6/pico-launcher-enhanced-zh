@@ -16,7 +16,7 @@ class IVramManager;
 /// favorites, completed. Under it the three most launched games with their
 /// counts against the right edge, and the last game played next to the clock
 /// the panel is opened with. The launcher's version sits faint at the top-right;
-/// the build hash is on the boot page and in the theme selector. The total
+/// the build hash is on the boot page and in the about sheet. The total
 /// launches and play time line is switched off in the .cpp.
 class StatisticsBottomSheetView : public BottomSheetView
 {

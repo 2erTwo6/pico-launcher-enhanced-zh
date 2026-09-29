@@ -28,6 +28,9 @@
   (its primary color and its dark setting). A custom theme's own cells and backgrounds could
   make the list you change it from hard to read. The top screen still previews the highlighted
   theme.
+- The theme selector no longer shows the version in the corner of the preview, where it covered
+  the picture. The about sheet shows the version and the commit, and the boot screen shows them
+  while the launcher loads.
 - The icon buttons' selector VRAM offset starts at zero instead of whatever was in memory. Nothing
   drew before it was set, so nothing changes on screen; it is an uninitialised member less. From
   marlooonxdd (#24).
