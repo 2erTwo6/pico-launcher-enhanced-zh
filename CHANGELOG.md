@@ -49,6 +49,8 @@
   drawn as they are instead of as colored noise, and covers saved top to bottom are no longer
   upside down. A cover or icon the launcher can't read gives way to the next one in line, so it
   no longer draws garbage or blanks out the game's own icon. Reported by shin on Discord.
+- In the cover flow layout, pressing Down from the app bar in an empty folder leaves the highlight
+  where it is. It used to vanish, and A did nothing until Up or B.
 
 ### [enhanced-v1.8.0]
 
