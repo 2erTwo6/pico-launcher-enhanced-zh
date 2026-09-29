@@ -24,6 +24,10 @@
   a light tint of that color behind it. Focusing an option that was not chosen used to paint it
   like a chosen one. The menu's rows follow the same rule, with the accent icon on top of their
   highlight bar.
+- The theme selector is always drawn as a Material theme, in the colors of the theme you use
+  (its primary color and its dark setting). A custom theme's own cells and backgrounds could
+  make the list you change it from hard to read. The top screen still previews the highlighted
+  theme.
 - The icon buttons' selector VRAM offset starts at zero instead of whatever was in memory. Nothing
   drew before it was set, so nothing changes on screen; it is an uninitialised member less. From
   marlooonxdd (#24).

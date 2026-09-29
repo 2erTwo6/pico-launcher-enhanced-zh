@@ -141,3 +141,6 @@ A theme can have an `icon.bmp` file that is shown in the theme list when selecti
 
 ## Theme selector preview image
 A theme can have a `preview.bin` file that is shown on the top screen in the theme selection screen. It must be a 256x192 pixels 15 bpp bitmap (same format as `topbg.bin` and `bottombg.bin`). When it is not provided, `topbg.bin` is displayed instead. If that does not exist either, nothing is shown on the top screen.
+
+## Theme selector look
+The theme selector is always drawn as a `material` theme with your theme's `primaryColor` and `darkTheme`, whatever the theme's type, so its list stays readable. Your theme shows through its icon in the list and its preview on the top screen.

@@ -126,13 +126,24 @@ void SettingsProcess::InitVramMapping() const
 
 void SettingsProcess::LoadTheme()
 {
+    // The selector is always drawn as a Material theme. A custom theme's own
+    // cells and backgrounds could make the one screen where you change it hard
+    // to read. It keeps the active theme's primary color and dark setting, so it
+    // still looks like it, and it has no folder, so it loads no files of its own.
     ThemeInfoFactory themeInfoFactory;
-    auto themeInfo = themeInfoFactory.CreateFromThemeFolder(_appSettingsService.GetAppSettings().theme);
-    if (!themeInfo)
+    auto activeThemeInfo = themeInfoFactory.CreateFromThemeFolder(_appSettingsService.GetAppSettings().theme);
+    std::unique_ptr<ThemeInfo> themeInfo;
+    if (activeThemeInfo)
+    {
+        themeInfo = std::make_unique<ThemeInfo>("", ThemeType::Material, "", "", "",
+            activeThemeInfo->GetPrimaryColor(), activeThemeInfo->GetIsDarkTheme());
+    }
+    else
     {
         LOG_DEBUG("Failed to load theme '%s'. Using fallback theme.\n", _appSettingsService.GetAppSettings().theme.GetString());
         themeInfo = themeInfoFactory.CreateFallbackTheme();
     }
+    activeThemeInfo.reset();
     _theme = ThemeFactory().CreateFromThemeInfo(themeInfo.get());
     themeInfo.reset();
     _theme->LoadRomBrowserResources(_mainVramContext, _subVramContext);
