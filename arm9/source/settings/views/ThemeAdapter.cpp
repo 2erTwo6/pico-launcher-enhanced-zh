@@ -70,6 +70,20 @@ void ThemeAdapter::BindView(SharedPtr<View> view, int index) const
             listItemView->UploadIconGraphics();
             static_cast<ThemeListItemViewModel&>(listItemView->GetViewModel()).SetExtraThemeInfo(extraThemeInfo);
         }
+        else
+        {
+            // No readable theme.json. Rows are recycled, so without this the row
+            // would keep the text and the theme of whatever it showed before, and
+            // A would apply that other theme. Show the folder, and make A inert.
+            const TCHAR* folderName = _settingsController->GetThemeRepository().GetThemeFolderName(index);
+            listItemView->SetFirstLineAsync(nullptr, folderName ? folderName : "", false);
+            listItemView->SetSecondLineAsync(nullptr, u"");
+            listItemView->SetThirdLineAsync(nullptr, u"");
+            listItemView->SetIcon(_themeFileIconFactory->CreateThemeFileIcon());
+            listItemView->UploadIconGraphics();
+            static_cast<ThemeListItemViewModel&>(listItemView->GetViewModel()).SetExtraThemeInfo(
+                SharedPtr<ThemeInfoManager::ExtraThemeInfo>());
+        }
 
         return TaskResult<void>::Completed();
     });

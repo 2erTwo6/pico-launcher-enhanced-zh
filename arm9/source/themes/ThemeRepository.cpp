@@ -27,6 +27,16 @@ std::unique_ptr<ThemeInfo> ThemeRepository::LoadThemeInfo(u32 themeIndex) const
     return _themeInfoFactory.CreateFromThemeFolder(_themeFolders[themeIndex]->GetFileName());
 }
 
+const TCHAR* ThemeRepository::GetThemeFolderName(int themeIndex) const
+{
+    if (themeIndex < 0 || (u32)themeIndex >= _numberOfThemes)
+    {
+        return nullptr;
+    }
+
+    return _themeFolders[themeIndex]->GetFileName();
+}
+
 int ThemeRepository::FindThemeIndex(const TCHAR* folderName) const
 {
     if (folderName == nullptr)

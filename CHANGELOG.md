@@ -2,6 +2,13 @@
 
 ## Enhanced fork
 
+### [Unreleased]
+
+#### Fixed
+- In the theme selector, a folder whose `theme.json` can't be read shows its own name, and A does
+  nothing on it. The list reuses its rows as it scrolls, and such a row used to keep the theme it
+  showed before, so A could apply that other theme.
+
 ### [enhanced-v1.9.0]
 
 #### Added
