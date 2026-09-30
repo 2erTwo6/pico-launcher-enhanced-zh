@@ -2,9 +2,13 @@
 #include <string.h>
 #include <strings.h>
 #include "App.h"
-#include "core/mini-printf.h"
+#include "SettingsProcess.h"
 #include "ThemeFolderRules.h"
 #include "SettingsController.h"
+
+/// The list position the selector reopens on after restarting for a delete.
+/// Survives the process restart, which is why it is static; read once.
+static int sReopenIndex = -1;
 
 SettingsController::SettingsController(IAppSettingsService* appSettingsService, TaskQueueBase* ioTaskQueue)
     : _appSettingsService(appSettingsService), _ioTaskQueue(ioTaskQueue) { }
@@ -107,6 +111,7 @@ void SettingsController::RequestDeleteTheme(int themeIndex)
     }
     memcpy(_deleteActiveTheme, activeTheme, activeThemeLength + 1);
 
+    _deleteIndex = themeIndex;
     _deleteStatus = nullptr;
     _deleteState = ThemeDeleteState::Confirming;
     LOG_DEBUG("Delete requested for theme '%s'\n", _deleteFolderName);
@@ -121,12 +126,12 @@ void SettingsController::ConfirmDeleteTheme()
 
     _deleteState = ThemeDeleteState::Deleting;
     _deleteTaskDone = false;
-    _deleteStatus = "Checking...";
+    _deleteStatus = "Deleting...";
     // Captures only `this`: the task slot is small, and everything the task
     // reads was copied into this controller when the delete was asked for.
     _ioTaskQueue->Enqueue([this] (const vu8& cancelRequested)
     {
-        _deleteResult = ThemeFolderDeleter::Check(_deleteFolderName, _deleteActiveTheme, _deleteCounts);
+        _deleteResult = ThemeFolderDeleter::Delete(_deleteFolderName, _deleteActiveTheme, _deleteRemovedSomething);
         // the result is written before the flag that says it is there
         asm volatile("" ::: "memory");
         _deleteTaskDone = true;
@@ -143,6 +148,32 @@ void SettingsController::UpdateDeleteTheme()
     asm volatile("" ::: "memory");
     SetDeleteResultStatus();
     _deleteState = ThemeDeleteState::Finished;
+    if (_deleteResult == ThemeDeleteResult::Ok)
+    {
+        // the list is read once, when the selector starts, so it starts again
+        RestartSelector();
+    }
+    else
+    {
+        // if part of it went, the list must show what is left once the
+        // reason has been read
+        _restartAfterResult = _deleteRemovedSomething;
+    }
+}
+
+void SettingsController::RestartSelector()
+{
+    // the theme that moved into the deleted one's place, clamped when the list
+    // gets read again
+    sReopenIndex = _deleteIndex;
+    gProcessManager.Goto<SettingsProcess>();
+}
+
+int SettingsController::TakeReopenIndex()
+{
+    int index = sReopenIndex;
+    sReopenIndex = -1;
+    return index;
 }
 
 void SettingsController::SetDeleteResultStatus()
@@ -150,11 +181,8 @@ void SettingsController::SetDeleteResultStatus()
     switch (_deleteResult)
     {
         case ThemeDeleteResult::Ok:
-            // test build: the check runs, nothing is deleted yet
-            mini_snprintf(_deleteStatusBuffer, sizeof(_deleteStatusBuffer), "Would delete %u files and %u folders",
-                (unsigned int)_deleteCounts.files, (unsigned int)_deleteCounts.folders);
-            _deleteStatus = _deleteStatusBuffer;
-            break;
+            _deleteStatus = "Deleted";
+            return;
         case ThemeDeleteResult::NotFound:
             _deleteStatus = "Couldn't find that theme's folder";
             break;
@@ -179,9 +207,17 @@ void SettingsController::SetDeleteResultStatus()
         case ThemeDeleteResult::ReadError:
             _deleteStatus = "Couldn't read the card";
             break;
+        case ThemeDeleteResult::WriteError:
+            _deleteStatus = "Couldn't write to the card";
+            break;
         case ThemeDeleteResult::OutOfMemory:
             _deleteStatus = "Not enough memory, try again";
             break;
+    }
+    if (_deleteRemovedSomething)
+    {
+        // whatever the reason, the folder is now only partly there
+        _deleteStatus = "Couldn't delete it all, try again";
     }
 }
 
@@ -195,9 +231,18 @@ void SettingsController::CancelDeleteTheme()
 
 void SettingsController::EndDeleteTheme()
 {
-    if (_deleteState == ThemeDeleteState::Finished)
+    if (_deleteState != ThemeDeleteState::Finished)
     {
-        _deleteStatus = nullptr;
-        _deleteState = ThemeDeleteState::None;
+        return;
     }
+    if (_restartAfterResult)
+    {
+        // stays Finished, so nothing can be picked while the selector fades out;
+        // the process calls this once, when the result has been shown
+        _restartAfterResult = false;
+        RestartSelector();
+        return;
+    }
+    _deleteStatus = nullptr;
+    _deleteState = ThemeDeleteState::None;
 }

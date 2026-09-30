@@ -5,7 +5,20 @@
 
 ThemeListViewModel::ThemeListViewModel(ISettingsController* settingsController, const char* activeThemeFolderName)
     : _settingsController(settingsController)
-    , _selectedItem(settingsController->GetThemeRepository().FindThemeIndex(activeThemeFolderName)) { }
+{
+    // after a delete the selector restarts on the theme that took the deleted
+    // one's place; otherwise it opens on the theme in use
+    int reopenIndex = settingsController->TakeReopenIndex();
+    int themeCount = (int)settingsController->GetThemeRepository().GetThemeCount();
+    if (reopenIndex >= 0 && themeCount > 0)
+    {
+        _selectedItem = reopenIndex < themeCount ? reopenIndex : themeCount - 1;
+    }
+    else
+    {
+        _selectedItem = settingsController->GetThemeRepository().FindThemeIndex(activeThemeFolderName);
+    }
+}
 
 void ThemeListViewModel::NavigateUp() const
 {

@@ -21,6 +21,7 @@ public:
     void CancelDeleteTheme() override;
     void EndDeleteTheme() override;
     void UpdateDeleteTheme() override;
+    int TakeReopenIndex() override;
 
     ThemeDeleteState GetDeleteState() const override { return _deleteState; }
     const char* GetDeleteFolderName() const override { return _deleteFolderName; }
@@ -49,9 +50,12 @@ private:
     char _deleteActiveTheme[65] = {};
     /// Written by the IO task, read on the main thread once _deleteTaskDone is set.
     ThemeDeleteResult _deleteResult = ThemeDeleteResult::Ok;
-    ThemeDeleteCounts _deleteCounts;
+    bool _deleteRemovedSomething = false;
     volatile bool _deleteTaskDone = false;
-    char _deleteStatusBuffer[48] = {};
+    int _deleteIndex = -1;
+    /// Set when the list must be read again after the result has been shown.
+    bool _restartAfterResult = false;
 
     void SetDeleteResultStatus();
+    void RestartSelector();
 };

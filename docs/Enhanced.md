@@ -96,6 +96,13 @@ A few things worth knowing:
 
 Deleting a game also deletes its save file (same name with a `.sav` extension, next to the ROM) and removes the game's entry from `gamedata.json`. Note that saves are matched by name without the extension: if `Game.gba` and `Game.nds` sit in the same folder, they share `Game.sav`, and deleting either game deletes it. With `saveLocation` set to `saves` (see [Usage.md](/docs/Usage.md#settings)), deleting a DS game deletes its save in the `saves` folder when there is one, and a save still next to the ROM is then left alone. When the folder has none, because the game was not launched since the setting was turned on, the save next to the ROM is deleted as before. The confirmation names the file that will go.
 
+## Deleting themes
+*Coming in the next release; v1.9.0 and earlier don't have it.*
+
+In the theme selector, the trash button at the bottom of the app bar deletes the highlighted theme's folder, with everything in it. A confirmation sheet opens first, naming the theme and its folder, since two themes can share a name: press **X** to confirm, or A or B to cancel. The selector then starts again without it, on the theme that took its place.
+
+The theme you are using and the two that come with the launcher, `material` and `raspberry`, can't be deleted; the button is faded on them. A folder whose `theme.json` can't be read shows under its folder name and can be deleted too. Nothing is deleted when a file in the folder is read-only, when it has more than four levels of folders or 1024 files and folders, when a name can't be read back, or when the card looks damaged around it; the sheet says why, and the folder can still be deleted on a computer. The theme's `theme.json` goes first, so if a delete is cut short, what is left shows as a folder name and can be deleted again.
+
 ## Cheats
 The cheat list wraps around at both ends: pressing up on the first entry jumps to the last
 one, and pressing down on the last entry comes back to the first, so the bottom of a long

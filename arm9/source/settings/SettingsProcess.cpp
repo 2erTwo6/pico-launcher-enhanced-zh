@@ -286,7 +286,9 @@ void SettingsProcess::SyncDeleteSheet()
         case ThemeDeleteState::Finished:
         {
             // the sheet shows how it went for a moment, then closes by itself
-            if (++_deleteResultFrames >= DELETE_RESULT_FRAMES)
+            // once: a partial delete restarts the selector here, and the sheet
+            // must keep its result on screen while the selector fades out
+            if (++_deleteResultFrames == DELETE_RESULT_FRAMES)
             {
                 _settingsController->EndDeleteTheme();
             }

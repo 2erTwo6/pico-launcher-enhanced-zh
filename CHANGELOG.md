@@ -4,6 +4,13 @@
 
 ### [Unreleased]
 
+#### Added
+- Delete a theme from the theme selector. The trash button at the bottom of its app bar deletes
+  the highlighted theme's folder after a confirmation that names the theme and its folder (X
+  confirms, A or B cancel), and the selector starts again without it. The theme in use, `material`
+  and `raspberry` can't be deleted, and nothing is deleted when a file inside is read-only or the
+  folder is deeper or larger than a theme should be. Tracked in #5.
+
 #### Fixed
 - In the theme selector, a folder whose `theme.json` can't be read shows its own name, and A does
   nothing on it. The list reuses its rows as it scrolls, and such a row used to keep the theme it

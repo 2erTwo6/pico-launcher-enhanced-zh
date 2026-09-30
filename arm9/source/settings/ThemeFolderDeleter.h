@@ -14,6 +14,7 @@ enum class ThemeDeleteResult
     PathTooLong,
     BadName,
     ReadError,
+    WriteError,
     OutOfMemory
 };
 
@@ -28,9 +29,14 @@ struct ThemeDeleteCounts
 ///        from the main thread.
 namespace ThemeFolderDeleter
 {
-    /// @brief Pass 1. Reads the whole folder and writes nothing. Ok means every
-    ///        rule held, so deleting it can only remove what was counted.
+    /// @brief First reads the whole folder and writes nothing; only if every rule
+    ///        holds, deletes it:
+    ///        theme.json first, so a folder left behind never loads as a theme,
+    ///        then everything else one entry at a time, then the folder itself.
+    ///        Stops at the first error.
     /// @param folderName The full folder name, as the list read it from the card.
     /// @param activeTheme The theme setting in use.
-    ThemeDeleteResult Check(const char* folderName, const char* activeTheme, ThemeDeleteCounts& counts);
+    /// @param removedSomething Set once a delete has been attempted, so a failure
+    ///        can say the folder may be only partly there.
+    ThemeDeleteResult Delete(const char* folderName, const char* activeTheme, bool& removedSomething);
 }
