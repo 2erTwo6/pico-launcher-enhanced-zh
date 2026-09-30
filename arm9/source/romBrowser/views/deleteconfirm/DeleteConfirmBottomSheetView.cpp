@@ -52,12 +52,14 @@ DeleteConfirmBottomSheetView::DeleteConfirmBottomSheetView(SharedPtr<IDeleteConf
 
 void DeleteConfirmBottomSheetView::Update()
 {
-    // the view model can replace the hint, e.g. to say how a delete went
+    // The view model can replace the hint, e.g. to say how a delete went. Once
+    // there is an answer it stays on screen until the sheet is gone: the status
+    // clears as the sheet starts to close, and "X: delete" must not come back.
     const char* status = _viewModel->GetStatusLine();
-    if (status != _shownStatus)
+    if (status != nullptr && status != _shownStatus)
     {
         _shownStatus = status;
-        _hintLabel->SetText(status ? status : kHint);
+        _hintLabel->SetText(status);
     }
     _titleLabel->SetPosition(TITLE_LABEL_X, _position.y + TITLE_LABEL_Y);
     _fileNameLabel->SetPosition(LINE_X, _position.y + FILE_NAME_Y);
