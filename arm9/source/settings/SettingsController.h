@@ -1,6 +1,7 @@
 #pragma once
 #include "fat/ff.h"
 #include "ISettingsController.h"
+#include "ThemeFolderDeleter.h"
 #include "ThemeInfoManager.h"
 #include "themes/ThemeRepository.h"
 
@@ -19,6 +20,7 @@ public:
     void ConfirmDeleteTheme() override;
     void CancelDeleteTheme() override;
     void EndDeleteTheme() override;
+    void UpdateDeleteTheme() override;
 
     ThemeDeleteState GetDeleteState() const override { return _deleteState; }
     const char* GetDeleteFolderName() const override { return _deleteFolderName; }
@@ -42,4 +44,14 @@ private:
     /// folder has no readable theme.json.
     char16_t _deleteThemeName[65] = {};
     const char* _deleteStatus = nullptr;
+    /// The theme setting when the delete was asked for, so the IO thread never
+    /// reads the live settings.
+    char _deleteActiveTheme[65] = {};
+    /// Written by the IO task, read on the main thread once _deleteTaskDone is set.
+    ThemeDeleteResult _deleteResult = ThemeDeleteResult::Ok;
+    ThemeDeleteCounts _deleteCounts;
+    volatile bool _deleteTaskDone = false;
+    char _deleteStatusBuffer[48] = {};
+
+    void SetDeleteResultStatus();
 };

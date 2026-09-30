@@ -33,6 +33,9 @@ public:
     virtual void CancelDeleteTheme() = 0;
     /// @brief Back to None once the result of a finished delete has been shown.
     virtual void EndDeleteTheme() = 0;
+    /// @brief Called every frame on the main thread; moves Deleting to Finished
+    ///        once the IO thread is done.
+    virtual void UpdateDeleteTheme() = 0;
 
     virtual ThemeDeleteState GetDeleteState() const = 0;
     /// @brief The folder and the name copied when the delete was requested.

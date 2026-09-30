@@ -52,7 +52,9 @@ private:
     Animator<int> _fadeAnimator;
 
     TaskQueue<32, sizeof(TaskBase) + 32> _ioTaskQueue;
-    u32 _ioTaskThreadStack[2048 / 4];
+    /// 4 KB, as in App: FatFs puts its long name buffer on this stack in every
+    /// call, and the theme delete walks folders from this thread.
+    u32 _ioTaskThreadStack[4096 / 4];
 
     std::unique_ptr<ITheme> _theme;
     std::unique_ptr<IThemeBackground> _topBackground;

@@ -113,6 +113,10 @@ void SettingsProcess::Run()
 
     rtos_disableIrqMask(RTOS_IRQ_VCOUNT);
     rtos_setIrqFunc(RTOS_IRQ_VCOUNT, nullptr);
+
+    // Let the IO thread finish its tasks while the controller they use is still
+    // alive; the members are destroyed controller first, queue last.
+    _ioTaskQueue.StopThread();
 }
 
 void SettingsProcess::Exit()
@@ -306,6 +310,7 @@ void SettingsProcess::SyncDeleteSheet()
         }
         case ThemeDeleteState::Deleting:
         {
+            _settingsController->UpdateDeleteTheme();
             break;
         }
     }

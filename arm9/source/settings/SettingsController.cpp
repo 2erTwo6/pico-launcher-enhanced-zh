@@ -2,6 +2,7 @@
 #include <string.h>
 #include <strings.h>
 #include "App.h"
+#include "core/mini-printf.h"
 #include "ThemeFolderRules.h"
 #include "SettingsController.h"
 
@@ -98,6 +99,14 @@ void SettingsController::RequestDeleteTheme(int themeIndex)
         _deleteThemeName[i] = 0;
     }
 
+    const char* activeTheme = _appSettingsService->GetAppSettings().theme.GetString();
+    size_t activeThemeLength = strlen(activeTheme);
+    if (activeThemeLength >= sizeof(_deleteActiveTheme))
+    {
+        return;
+    }
+    memcpy(_deleteActiveTheme, activeTheme, activeThemeLength + 1);
+
     _deleteStatus = nullptr;
     _deleteState = ThemeDeleteState::Confirming;
     LOG_DEBUG("Delete requested for theme '%s'\n", _deleteFolderName);
@@ -110,9 +119,70 @@ void SettingsController::ConfirmDeleteTheme()
         return;
     }
 
-    // test build: nothing is deleted yet
-    _deleteStatus = "Nothing was deleted (test build)";
+    _deleteState = ThemeDeleteState::Deleting;
+    _deleteTaskDone = false;
+    _deleteStatus = "Checking...";
+    // Captures only `this`: the task slot is small, and everything the task
+    // reads was copied into this controller when the delete was asked for.
+    _ioTaskQueue->Enqueue([this] (const vu8& cancelRequested)
+    {
+        _deleteResult = ThemeFolderDeleter::Check(_deleteFolderName, _deleteActiveTheme, _deleteCounts);
+        // the result is written before the flag that says it is there
+        asm volatile("" ::: "memory");
+        _deleteTaskDone = true;
+        return TaskResult<void>::Completed();
+    });
+}
+
+void SettingsController::UpdateDeleteTheme()
+{
+    if (_deleteState != ThemeDeleteState::Deleting || !_deleteTaskDone)
+    {
+        return;
+    }
+    asm volatile("" ::: "memory");
+    SetDeleteResultStatus();
     _deleteState = ThemeDeleteState::Finished;
+}
+
+void SettingsController::SetDeleteResultStatus()
+{
+    switch (_deleteResult)
+    {
+        case ThemeDeleteResult::Ok:
+            // test build: the check runs, nothing is deleted yet
+            mini_snprintf(_deleteStatusBuffer, sizeof(_deleteStatusBuffer), "Would delete %u files and %u folders",
+                (unsigned int)_deleteCounts.files, (unsigned int)_deleteCounts.folders);
+            _deleteStatus = _deleteStatusBuffer;
+            break;
+        case ThemeDeleteResult::NotFound:
+            _deleteStatus = "Couldn't find that theme's folder";
+            break;
+        case ThemeDeleteResult::Protected:
+            _deleteStatus = "That theme can't be deleted";
+            break;
+        case ThemeDeleteResult::ReadOnly:
+            _deleteStatus = "Couldn't delete: a file is read-only";
+            break;
+        case ThemeDeleteResult::TooDeep:
+            _deleteStatus = "Couldn't delete: too many folders deep";
+            break;
+        case ThemeDeleteResult::TooManyEntries:
+            _deleteStatus = "Couldn't delete: too many files";
+            break;
+        case ThemeDeleteResult::PathTooLong:
+            _deleteStatus = "Couldn't delete: a name is too long";
+            break;
+        case ThemeDeleteResult::BadName:
+            _deleteStatus = "Couldn't delete: a name can't be read";
+            break;
+        case ThemeDeleteResult::ReadError:
+            _deleteStatus = "Couldn't read the card";
+            break;
+        case ThemeDeleteResult::OutOfMemory:
+            _deleteStatus = "Not enough memory, try again";
+            break;
+    }
 }
 
 void SettingsController::CancelDeleteTheme()
