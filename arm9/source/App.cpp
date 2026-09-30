@@ -27,6 +27,7 @@
 #include "romBrowser/views/cheats/CheatsBottomSheetView.h"
 #include "romBrowser/views/recents/RecentsBottomSheetView.h"
 #include "romBrowser/views/statistics/StatisticsBottomSheetView.h"
+#include "romBrowser/viewModels/DeleteConfirmViewModel.h"
 #include "romBrowser/views/deleteconfirm/DeleteConfirmBottomSheetView.h"
 #include "romBrowser/views/menu/MenuBottomSheetView.h"
 #include "romBrowser/views/about/AboutBottomSheetView.h"
