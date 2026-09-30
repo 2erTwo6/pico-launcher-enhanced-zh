@@ -5,6 +5,7 @@
 #include "core/task/TaskQueue.h"
 #include "gui/AdvancedPaletteManager.h"
 #include "gui/AscendingStackVramManager.h"
+#include "gui/DescendingStackVramManager.h"
 #include "gui/OamManager.h"
 #include "gui/Rgb6Palette.h"
 #include "gui/SimplePaletteManager.h"
@@ -21,6 +22,7 @@
 #include "themes/ITheme.h"
 #include "services/process/IProcess.h"
 #include "services/settings/IAppSettingsService.h"
+#include "DialogPresenter.h"
 
 class SettingsController;
 
@@ -36,6 +38,8 @@ private:
     AdvancedPaletteManager<64> _mainObjPltt;
     OamManager _mainOam;
     AscendingStackVramManager _mainObjVram;
+    /// Sheets take their sprites from the top of the same OBJ bank, as in App.
+    DescendingStackVramManager _mainObjDialogVram;
     OamManager _subOam;
     SimplePaletteManager _subObjPltt;
     AscendingStackVramManager _subObjVram;
@@ -63,6 +67,10 @@ private:
     InputRepeater _inputRepeater;
 
     FocusManager _focusManager;
+    /// After _focusManager and _mainObjDialogVram: it reads both when built.
+    DialogPresenter _dialogPresenter;
+    bool _deleteSheetShown = false;
+    int _deleteResultFrames = 0;
 
     ChipView::VramToken _chipViewVram;
     IconButton2DView::VramToken _iconButtonViewVram;
@@ -80,6 +88,7 @@ private:
     void MainLoop();
     void Update();
     void HandleInput();
+    void SyncDeleteSheet();
     void Draw();
     void VBlank();
     void VCountIrq();
