@@ -29,6 +29,7 @@ void ThemeListBottomView::Update()
 {
     ViewContainer::Update();
     _viewModel->SetSelectedItem(_recyclerView->GetSelectedItem());
+    _appBarView->SetDeleteEnabled(_viewModel->CanDeleteSelected());
 }
 
 SharedPtr<View> ThemeListBottomView::MoveFocus(const SharedPtr<View>& currentFocus, FocusMoveDirection direction, View* source)

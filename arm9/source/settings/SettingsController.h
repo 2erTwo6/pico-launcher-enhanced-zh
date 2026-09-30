@@ -13,6 +13,8 @@ public:
     void Initialize() override;
     void NavigateUp() override;
     void SelectTheme(const char* themeFolderName) override;
+    bool CanDeleteTheme(int themeIndex) const override;
+    void RequestDeleteTheme(int themeIndex) override;
 
     ThemeInfoManager& GetThemeInfoManager() const override { return *_themeInfoManager; }
     const ThemeRepository& GetThemeRepository() const override { return _themeRepository; }

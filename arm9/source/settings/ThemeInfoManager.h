@@ -19,6 +19,9 @@ public:
 
     SharedPtr<ExtraThemeInfo> GetExtraThemeInfo(int index) const
     {
+        // -1 is what an empty list reports as its selection
+        if (index < 0 || (u32)index >= GetItemCount())
+            return SharedPtr<ExtraThemeInfo>();
         return _extraThemeInfo[index].Lock();
     }
 

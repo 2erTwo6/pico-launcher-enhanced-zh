@@ -10,6 +10,10 @@ public:
 
     void NavigateUp() const;
 
+    /// @brief Whether the highlighted theme may be deleted, see ISettingsController::CanDeleteTheme.
+    bool CanDeleteSelected() const;
+    void RequestDeleteSelected() const;
+
     ISettingsController* GetSettingsController() const
     {
         return _settingsController;

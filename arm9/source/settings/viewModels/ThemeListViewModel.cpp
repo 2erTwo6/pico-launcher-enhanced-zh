@@ -11,3 +11,13 @@ void ThemeListViewModel::NavigateUp() const
 {
     _settingsController->NavigateUp();
 }
+
+bool ThemeListViewModel::CanDeleteSelected() const
+{
+    return _settingsController->CanDeleteTheme(_selectedItem);
+}
+
+void ThemeListViewModel::RequestDeleteSelected() const
+{
+    _settingsController->RequestDeleteTheme(_selectedItem);
+}

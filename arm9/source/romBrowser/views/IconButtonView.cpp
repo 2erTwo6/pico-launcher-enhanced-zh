@@ -87,7 +87,9 @@ void IconButtonView::HandlePenMove(const Point& touchPoint, FocusManager& focusM
 
 void IconButtonView::HandlePenUp(const Point& lastTouchPoint, FocusManager& focusManager)
 {
-    if (_penDown && GetBounds().Contains(lastTouchPoint))
+    // a tap that started while the button was enabled can end after it was
+    // disabled; the end of the tap must not act either
+    if (_penDown && _enabled && GetBounds().Contains(lastTouchPoint))
     {
         focusManager.Focus(SharedFromThis());
 
