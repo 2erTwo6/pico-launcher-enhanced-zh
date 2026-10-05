@@ -353,7 +353,7 @@ void App::HandleTrigger(RomBrowserStateTrigger trigger, RomBrowserState newState
         {
             // the browser is back where it was, so say why the game did not start
             if (_toast)
-                _toast->Show("Needs a DSi or 3DS");
+                _toast->Show("需要 DSi 或 3DS");
             break;
         }
         case RomBrowserStateTrigger::ShowGameInfo:
@@ -685,6 +685,41 @@ void App::HandleChangeDisplayModeTrigger(RomBrowserState newState)
         _romBrowserBottomScreenView->Focus(_focusManager);
 }
 
+// Copy the first display character of a UTF-8 file name, so a Chinese folder
+// shows the actual first Han character on an initial jump instead of leaving
+// the string truncated inside a multibyte sequence.
+static void CopyFirstDisplayCharacter(const char* fileName, char* out, u32 outSize)
+{
+    out[0] = 0;
+    if (!fileName || !fileName[0] || outSize < 2)
+        return;
+
+    unsigned char c0 = (unsigned char)fileName[0];
+    if ((c0 & 0x80) == 0)
+    {
+        out[0] = (char)toupper(c0);
+        out[1] = 0;
+    }
+    else if ((c0 & 0xE0) == 0xC0 && fileName[1] && outSize >= 3)
+    {
+        out[0] = fileName[0];
+        out[1] = fileName[1];
+        out[2] = 0;
+    }
+    else if ((c0 & 0xF0) == 0xE0 && fileName[1] && fileName[2] && outSize >= 4)
+    {
+        out[0] = fileName[0];
+        out[1] = fileName[1];
+        out[2] = fileName[2];
+        out[3] = 0;
+    }
+    else
+    {
+        out[0] = '?';
+        out[1] = 0;
+    }
+}
+
 void App::Update()
 {
     // Copying the captured frame out of vram is far too long for vblank, so it
@@ -713,8 +748,9 @@ void App::Update()
             int selectedItem = viewModel->GetSelectedItem();
             if (selectedItem >= 0)
             {
-                char letter[2] = { (char)toupper((unsigned char)
-                    viewModel->GetFileInfoManager().GetItem(selectedItem).GetFileName()[0]), 0 };
+                char letter[8];
+                CopyFirstDisplayCharacter(
+                    viewModel->GetFileInfoManager().GetItem(selectedItem).GetFileName(), letter, sizeof(letter));
                 _toast->Show(letter);
             }
         }

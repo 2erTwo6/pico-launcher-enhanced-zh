@@ -58,13 +58,13 @@
 // them. Kept in step with docs/Enhanced.md's table.
 static const struct { const char* button; const char* action; } kCommands[] =
 {
-    { "X",        "favorite. hold: completed" },
-    { "Y",        "cheats for this game" },
-    { "L R",      "previous or next initial" },
-    { "SELECT+A", "random game in this folder" },
-    { "START",    "hold: save a screenshot" },
-    { "B",        "folder up, or close a panel" },
-    { "X",        "in cheats: every cheat off" },
+    { "X",        "收藏。长按：通关" },
+    { "Y",        "本游戏的金手指" },
+    { "L R",      "上一个／下一个首字母" },
+    { "SELECT+A", "本文件夹中随机启动" },
+    { "START",    "长按：保存截图" },
+    { "B",        "返回上级或关闭面板" },
+    { "X",        "金手指中：全部关闭" },
 };
 static const int kCommandCount = sizeof(kCommands) / sizeof(kCommands[0]);
 
@@ -75,12 +75,12 @@ AboutBottomSheetView::AboutBottomSheetView(SharedPtr<AboutViewModel> viewModel,
 {
     char text[96];
     _upstreamName = AddLabel(fontRepository, FontType::Medium10, COLUMN_WIDTH, 16, "Pico Launcher", Alignment::Center);
-    _upstreamBy = AddLabel(fontRepository, FontType::Regular10, COLUMN_WIDTH, 24, "by the LNH team", Alignment::Center);
+    _upstreamBy = AddLabel(fontRepository, FontType::Regular10, COLUMN_WIDTH, 24, "LNH 团队制作", Alignment::Center);
     char version[16];
     FormatLauncherVersion(version, sizeof(version), false);
     mini_snprintf(text, sizeof(text), "Enhanced %s", version);
     _forkName = AddLabel(fontRepository, FontType::Medium10, COLUMN_WIDTH, 24, text, Alignment::Center);
-    _forkBy = AddLabel(fontRepository, FontType::Regular10, COLUMN_WIDTH, 24, "by rasalopa", Alignment::Center);
+    _forkBy = AddLabel(fontRepository, FontType::Regular10, COLUMN_WIDTH, 24, "rasalopa 制作", Alignment::Center);
 
     // "rasalopa/pico-launcher-enhanced @ 2173910": where the build came from
     // and which commit, as far as the build knows. The version is in the
@@ -90,7 +90,7 @@ AboutBottomSheetView::AboutBottomSheetView(SharedPtr<AboutViewModel> viewModel,
     else if (kLauncherRepo[0] != 0)
         mini_snprintf(text, sizeof(text), "%s", kLauncherRepo);
     else if (kLauncherBuild[0] != 0)
-        mini_snprintf(text, sizeof(text), "build %s", kLauncherBuild);
+        mini_snprintf(text, sizeof(text), "构建 %s", kLauncherBuild);
     else
         text[0] = 0;
     _buildLabel = AddLabel(fontRepository, FontType::Medium7_5, BUILD_WIDTH, 80, text, Alignment::Start);

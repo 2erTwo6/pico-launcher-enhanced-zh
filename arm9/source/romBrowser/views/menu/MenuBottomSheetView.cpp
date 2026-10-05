@@ -69,7 +69,7 @@ MenuItemView::MenuItemView(MenuBottomSheetView* sheet, int index, int width, con
     {
         _stateLabel = Label2DView::CreateShared(STATE_WIDTH, 16, 4, fontRepository->GetFont(FontType::Medium7_5));
         _stateLabel->SetHorizontalAlignment(Alignment::End);
-        _stateLabel->SetText("off");
+        _stateLabel->SetText("关");
         AddChildTail(_stateLabel.GetPointer());
     }
 }
@@ -181,7 +181,7 @@ MenuBottomSheetView::MenuBottomSheetView(SharedPtr<MenuViewModel> viewModel,
     , _materialColorScheme(materialColorScheme)
 {
     _titleLabel = Label2DView::CreateShared(128, 16, 25, fontRepository->GetFont(FontType::Medium11));
-    _titleLabel->SetText("Menu");
+    _titleLabel->SetText("菜单");
     AddChildTail(_titleLabel.GetPointer());
 
     _aboutButton = IconButton2DView::CreateShared(
@@ -197,12 +197,12 @@ MenuBottomSheetView::MenuBottomSheetView(SharedPtr<MenuViewModel> viewModel,
 
     static const struct { const char* name; bool filter; } kEntries[ITEM_COUNT] =
     {
-        { "Recently played", false },
-        { "Favorites", false },
-        { "Statistics", false },
-        { "Delete game", false },
-        { "Only favorites", true },
-        { "Only completed", true }
+        { "最近游玩", false },
+        { "收藏", false },
+        { "统计", false },
+        { "删除游戏", false },
+        { "仅收藏", true },
+        { "仅通关", true }
     };
     for (int i = 0; i < ITEM_COUNT; i++)
     {

@@ -39,7 +39,7 @@ public:
     void SetActive(bool active)
     {
         if (_stateLabel && active != _active)
-            _stateLabel->SetText(active ? "on" : "off");
+            _stateLabel->SetText(active ? "开" : "关");
         _active = active;
     }
 
@@ -53,7 +53,7 @@ private:
     Rgb<8, 8, 8> _activeColor;
     const MaterialColorScheme* _materialColorScheme;
     SharedPtr<Label2DView> _nameLabel;
-    /// "on" or "off"; only the filters have one.
+    /// "开" or "关"; only the filters have one.
     SharedPtr<Label2DView> _stateLabel;
     u32 _iconVramOffset = 0;
     u32 _selectorVramOffset = 0;
@@ -62,7 +62,7 @@ private:
     bool _penDown = false;
 
     /// @param width A cell of the two-column part or a full row (see the .cpp).
-    /// @param hasState Whether this is a filter, with "on" or "off" at the end.
+    /// @param hasState Whether this is a filter, with "开" or "关" at the end.
     MenuItemView(MenuBottomSheetView* sheet, int index, int width, const char* name,
         bool hasState, const Rgb<8, 8, 8>& activeColor,
         const MaterialColorScheme* materialColorScheme, const IFontRepository* fontRepository);

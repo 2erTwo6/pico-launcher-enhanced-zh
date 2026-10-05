@@ -17,11 +17,11 @@ public:
         , _folderName(settingsController->GetDeleteFolderName())
     {
         // display only: a cut-off folder name here ends in an ellipsis on screen
-        mini_snprintf(_detailLine, sizeof(_detailLine), "The folder %s is deleted, with all its files",
+        mini_snprintf(_detailLine, sizeof(_detailLine), "文件夹 %s 及其中的所有文件都会被删除",
             _folderName.GetString());
     }
 
-    const char16_t* GetTitle() const override { return u"Delete theme?"; }
+    const char16_t* GetTitle() const override { return u"删除主题？"; }
 
     const char16_t* GetNameLine16() const override
     {

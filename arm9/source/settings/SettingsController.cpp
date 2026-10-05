@@ -126,7 +126,7 @@ void SettingsController::ConfirmDeleteTheme()
 
     _deleteState = ThemeDeleteState::Deleting;
     _deleteTaskDone = false;
-    _deleteStatus = "Deleting...";
+    _deleteStatus = "正在删除…";
     // Captures only `this`: the task slot is small, and everything the task
     // reads was copied into this controller when the delete was asked for.
     _ioTaskQueue->Enqueue([this] (const vu8& cancelRequested)
@@ -181,43 +181,43 @@ void SettingsController::SetDeleteResultStatus()
     switch (_deleteResult)
     {
         case ThemeDeleteResult::Ok:
-            _deleteStatus = "Deleted";
+            _deleteStatus = "已删除";
             return;
         case ThemeDeleteResult::NotFound:
-            _deleteStatus = "Couldn't find that theme's folder";
+            _deleteStatus = "找不到该主题的文件夹";
             break;
         case ThemeDeleteResult::Protected:
-            _deleteStatus = "That theme can't be deleted";
+            _deleteStatus = "该主题无法删除";
             break;
         case ThemeDeleteResult::ReadOnly:
-            _deleteStatus = "Couldn't delete: a file is read-only";
+            _deleteStatus = "删除失败：有文件是只读的";
             break;
         case ThemeDeleteResult::TooDeep:
-            _deleteStatus = "Couldn't delete: too many folders deep";
+            _deleteStatus = "删除失败：文件夹层级过深";
             break;
         case ThemeDeleteResult::TooManyEntries:
-            _deleteStatus = "Couldn't delete: too many files";
+            _deleteStatus = "删除失败：文件过多";
             break;
         case ThemeDeleteResult::PathTooLong:
-            _deleteStatus = "Couldn't delete: a name is too long";
+            _deleteStatus = "删除失败：文件名过长";
             break;
         case ThemeDeleteResult::BadName:
-            _deleteStatus = "Couldn't delete: a name can't be read";
+            _deleteStatus = "删除失败：无法读取文件名";
             break;
         case ThemeDeleteResult::ReadError:
-            _deleteStatus = "Couldn't read the card";
+            _deleteStatus = "无法读取存储卡";
             break;
         case ThemeDeleteResult::WriteError:
-            _deleteStatus = "Couldn't write to the card";
+            _deleteStatus = "无法写入存储卡";
             break;
         case ThemeDeleteResult::OutOfMemory:
-            _deleteStatus = "Not enough memory, try again";
+            _deleteStatus = "内存不足，请重试";
             break;
     }
     if (_deleteRemovedSomething)
     {
         // whatever the reason, the folder is now only partly there
-        _deleteStatus = "Couldn't delete it all, try again";
+        _deleteStatus = "未能全部删除，请重试";
     }
 }
 
