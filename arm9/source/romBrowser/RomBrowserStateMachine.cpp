@@ -25,6 +25,19 @@ bool RomBrowserStateMachine::FireDirect(RomBrowserStateTrigger trigger)
             .Trigger(RomBrowserStateTrigger::ShowFavorites).GoesTo(RomBrowserState::Favorites)
             .Trigger(RomBrowserStateTrigger::ShowStatistics).GoesTo(RomBrowserState::Statistics)
             .Trigger(RomBrowserStateTrigger::ShowDeleteConfirm).GoesTo(RomBrowserState::DeleteConfirm)
+            .Trigger(RomBrowserStateTrigger::ShowMenu).GoesTo(RomBrowserState::Menu)
+        // The menu hands over to whatever is picked from it. A filter toggle
+        // fires ChangeDisplayMode, which from here also means "and close the menu".
+        .In(RomBrowserState::Menu)
+            .Trigger(RomBrowserStateTrigger::HideMenu).GoesTo(RomBrowserState::Browser)
+            .Trigger(RomBrowserStateTrigger::ChangeDisplayMode).GoesTo(RomBrowserState::Browser)
+            .Trigger(RomBrowserStateTrigger::ShowRecents).GoesTo(RomBrowserState::Recents)
+            .Trigger(RomBrowserStateTrigger::ShowFavorites).GoesTo(RomBrowserState::Favorites)
+            .Trigger(RomBrowserStateTrigger::ShowStatistics).GoesTo(RomBrowserState::Statistics)
+            .Trigger(RomBrowserStateTrigger::ShowDeleteConfirm).GoesTo(RomBrowserState::DeleteConfirm)
+            .Trigger(RomBrowserStateTrigger::ShowAbout).GoesTo(RomBrowserState::About)
+        .In(RomBrowserState::About)
+            .Trigger(RomBrowserStateTrigger::HideAbout).GoesTo(RomBrowserState::Browser)
         .In(RomBrowserState::Recents)
             .Trigger(RomBrowserStateTrigger::HideRecents).GoesTo(RomBrowserState::Browser)
             .Trigger(RomBrowserStateTrigger::Navigate).GoesTo(RomBrowserState::LoadingFolder)
@@ -44,6 +57,10 @@ bool RomBrowserStateMachine::FireDirect(RomBrowserStateTrigger trigger)
             .Trigger(RomBrowserStateTrigger::ChangeDisplayMode).GoesTo(RomBrowserState::DisplaySettings)
             .Trigger(RomBrowserStateTrigger::HideDisplaySettings).GoesTo(RomBrowserState::Browser)
             .Trigger(RomBrowserStateTrigger::GotoSettingsScreen).GoesTo(RomBrowserState::GoingToSettingsScreen)
+        // A launch the console cannot carry out (a DSi-only game on a DS) comes
+        // straight back, before anything about it was recorded.
+        .In(RomBrowserState::Launching)
+            .Trigger(RomBrowserStateTrigger::LaunchRefused).GoesTo(RomBrowserState::Browser)
         .Check(newState))
     {
         _prevState = _curState;

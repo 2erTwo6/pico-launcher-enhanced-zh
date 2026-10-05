@@ -87,7 +87,9 @@ void IconButtonView::HandlePenMove(const Point& touchPoint, FocusManager& focusM
 
 void IconButtonView::HandlePenUp(const Point& lastTouchPoint, FocusManager& focusManager)
 {
-    if (_penDown && GetBounds().Contains(lastTouchPoint))
+    // a tap that started while the button was enabled can end after it was
+    // disabled; the end of the tap must not act either
+    if (_penDown && _enabled && GetBounds().Contains(lastTouchPoint))
     {
         focusManager.Focus(SharedFromThis());
 
@@ -107,7 +109,9 @@ bool IconButtonView::IsCircleBackgroundVisible() const
     {
         case Type::Standard:
         {
-            return false;
+            // a Standard button has no circle of its own; selecting it gives it
+            // one, the same one a selected Tonal button has
+            return _state == State::ToggleSelected;
         }
         case Type::Filled:
         case Type::Tonal:
@@ -128,7 +132,8 @@ md::sys::color IconButtonView::GetCircleBackgroundColor() const
     {
         case Type::Standard:
         {
-            return _backgroundColor;
+            // only drawn while selected, see IsCircleBackgroundVisible
+            return md::sys::color::secondaryContainer;
         }
         case Type::Filled:
         {
@@ -139,10 +144,10 @@ md::sys::color IconButtonView::GetCircleBackgroundColor() const
         }
         case Type::Tonal:
         {
-            if (_state == State::ToggleUnselected)
-                return md::sys::color::surfaceContainerHighest;
-            else
+            if (_state == State::ToggleSelected)
                 return md::sys::color::secondaryContainer;
+            else
+                return md::sys::color::surfaceContainerHighest;
         }
         default:
         {
@@ -150,6 +155,23 @@ md::sys::color IconButtonView::GetCircleBackgroundColor() const
             return md::sys::color::onSurfaceVariant;
         }
     }
+}
+
+// How far the focus veil moves a circle towards the accent: Material 3's focus
+// state layer. Faint enough that a selected circle still reads as selected.
+#define FOCUS_VEIL_PERCENT  12
+
+bool IconButtonView::GetDrawnCircleColor(Rgb<8, 8, 8>& color) const
+{
+    bool focused = _isFocused || _penDown;
+    bool ownCircle = IsCircleBackgroundVisible();
+    if (!ownCircle && !focused)
+        return false;
+    auto base = _materialColorScheme->GetColor(ownCircle ? GetCircleBackgroundColor() : _backgroundColor);
+    color = focused
+        ? RgbMixer::Lerp(base, _materialColorScheme->GetColor(md::sys::color::primary), FOCUS_VEIL_PERCENT, 100)
+        : base;
+    return true;
 }
 
 // Half way to the button's own background: enough to read as inactive on any
@@ -170,13 +192,9 @@ Rgb<8, 8, 8> IconButtonView::GetIconColor() const
 
 Rgb<8, 8, 8> IconButtonView::GetFocusIconColor() const
 {
-    // must match whichever circle GetFocusFillColor picked
-    auto role = _state == State::ToggleSelected
-        ? md::sys::color::onPrimary
-        : md::sys::color::onSecondaryContainer;
     return FadeIfDisabled(_hasIconColorOverride
         ? _iconColorOverride
-        : _materialColorScheme->GetColor(role));
+        : _materialColorScheme->GetColor(md::sys::color::primary));
 }
 
 md::sys::color IconButtonView::GetForegroundColor() const
@@ -185,8 +203,9 @@ md::sys::color IconButtonView::GetForegroundColor() const
     {
         case Type::Standard:
         {
+            // a selected Standard button sits on the container circle
             if (_state == State::ToggleSelected)
-                return md::sys::color::primary;
+                return md::sys::color::onSecondaryContainer;
             else
                 return md::sys::color::onSurfaceVariant;
         }
@@ -199,10 +218,10 @@ md::sys::color IconButtonView::GetForegroundColor() const
         }
         case Type::Tonal:
         {
-            if (_state == State::ToggleUnselected)
-                return md::sys::color::onSurfaceVariant;
-            else
+            if (_state == State::ToggleSelected)
                 return md::sys::color::onSecondaryContainer;
+            else
+                return md::sys::color::onSurfaceVariant;
         }
         default:
         {

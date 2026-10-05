@@ -54,6 +54,11 @@ public:
     /// @return True when play time was credited (the caller should save).
     virtual bool CloseOpenSession(const char* nowDateTime) = 0;
 
+    /// @brief Forgets the session opened by the last RecordLaunch without
+    ///        crediting it, for when launch tracking was switched off since.
+    /// @return True when there was a session to forget (the caller should save).
+    virtual bool DiscardOpenSession() = 0;
+
     /// @brief Unordered access to all entries, for building derived lists
     ///        (e.g. recents). Indices are only valid until the next mutation.
     virtual u32 GetEntryCount() const = 0;

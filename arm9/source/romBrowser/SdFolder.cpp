@@ -29,6 +29,11 @@ std::unique_ptr<const FileInfo*[]> SdFolder::FilterAndSort(
         {
             continue;
         }
+        if (filterSortParams.hideSavesFolders && classification == FileTypeClassification::Folder &&
+            !strcasecmp(file->GetFileName(), "saves"))
+        {
+            continue;
+        }
         if (filterSortParams.favoritesOnly && filterSortParams.gameDataService &&
             classification != FileTypeClassification::Folder)
         {

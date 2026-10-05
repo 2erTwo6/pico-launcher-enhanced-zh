@@ -6,3 +6,8 @@
 #define IPC_CHANNEL_SOUND   19
 #define IPC_CHANNEL_RTC     20
 #define IPC_CHANNEL_PMIC    21
+
+// On IPC_CHANNEL_PMIC the ARM9 sends a backlight level (0..3), or this bit
+// alone to ask whether the console has levels at all; the ARM7 answers 1 or 0
+// on the same channel.
+#define IPC_PMIC_ASK_LEVELS (1 << 7)

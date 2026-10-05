@@ -18,16 +18,31 @@
 
 // Room to breathe on both sides of the text. The panel is sized to the string
 // rather than to the screen, so a two word confirmation reads as something the
-// launcher put there on purpose instead of a bar across the bottom.
+// launcher put there on purpose instead of a bar across the bottom - and a single
+// letter, which is what an L/R jump says, as a small pill around that letter
+// rather than a bar with the letter at one end of it. The floor only keeps a
+// very short string from coming out narrower than the panel is tall.
 #define TEXT_PADDING_X      14
-#define MIN_WIDTH           72
-#define MAX_WIDTH           232
+#define MIN_WIDTH           TOAST_HEIGHT
+#define MAX_WIDTH           (TEXT_WIDTH + 2 * TEXT_PADDING_X)
 
-#define TEXT_HEIGHT         14
-#define TEXT_WIDTH          (MAX_WIDTH - 2 * TEXT_PADDING_X)
+// The label box is 16 tall like every other Medium10 label: the glyphs need the
+// rows under the baseline for their descenders, and at 12 the g in "saving" lost
+// its tail. The box starts 5 rows down, which keeps the body of the text where it
+// sat, and its bottom lands on the panel's last row, which is enough for a tail.
+//
+// And 128 wide, which is a budget, not a layout choice. The label's texture is
+// as wide as the next power of two, so 128 pixels of text cost 2 KB and one
+// more would cost 4 KB - and the cover flow's covers fill the texture bank to
+// within 4 KB of its end. At 4 KB the last cover lost its top rows past the end
+// of the bank, on the DS Lite and the 3DS alike, where 3 KB had still fit.
+// Every message so far is under 110 pixels; a longer one is cut with an
+// ellipsis, not widened.
+#define TEXT_HEIGHT         16
+#define TEXT_TOP            5
+#define TEXT_WIDTH          128
 
-// The label rounds its texture up to the next power of two, so asking for more
-// than 256 pixels of width would double the vram it holds for the session.
+// Characters the label can hold; what fits on screen is TEXT_WIDTH.
 #define MAX_STRING_LENGTH   48
 
 // One pixel off each corner, and no more than one.
@@ -152,7 +167,12 @@ void ToastView::Update()
     _y = TOAST_BOTTOM - TOAST_HEIGHT + RISE_PIXELS - progress * RISE_PIXELS / PROGRESS_MAX;
 
     _label->SetAlpha(_alpha);
-    _label->SetPosition(_x + TEXT_PADDING_X, _y + (TOAST_HEIGHT - TEXT_HEIGHT) / 2);
+    // Centred in the panel, not started at its padding: the panel is normally
+    // sized to the text so the two agree, but whenever it is not - a string
+    // shorter than the floor, or longer than the panel can be - the text should
+    // still sit in the middle of it rather than against its left edge.
+    int textInset = std::max(TEXT_PADDING_X, ((int)_width - (int)_label->GetStringWidth()) / 2);
+    _label->SetPosition(_x + textInset, _y + TEXT_TOP);
     _label->Update();
 }
 

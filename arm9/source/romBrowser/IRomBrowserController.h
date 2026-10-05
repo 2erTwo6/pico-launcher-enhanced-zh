@@ -41,6 +41,12 @@ public:
     virtual void HideFavorites() = 0;
     virtual void ShowStatistics() = 0;
     virtual void HideStatistics() = 0;
+    /// @brief The menu behind the app bar's "more" button.
+    virtual void ShowMenu() = 0;
+    virtual void HideMenu() = 0;
+    /// @brief The about sheet, reached from the menu.
+    virtual void ShowAbout() = 0;
+    virtual void HideAbout() = 0;
     /// @brief Whether the highlighted entry can be deleted at all. Folders and
     ///        support files cannot, so the app bar dims its delete button rather
     ///        than offering one that does nothing.
@@ -82,6 +88,9 @@ public:
 
     virtual const RomBrowserDisplaySettings& GetRomBrowserDisplaySettings() const = 0;
 
+    /// @brief Returns where the launcher keeps the save file of a DS game.
+    virtual SaveLocation GetSaveLocation() const = 0;
+
     virtual void SetRomBrowserDisplaySettings(
         const RomBrowserDisplaySettings& romBrowserDisplaySettings) = 0;
 
@@ -89,6 +98,9 @@ public:
     ///        picked one (the firmware's level is left untouched then).
     virtual int GetBacklightLevel() const = 0;
     virtual void SetBacklightLevel(int level) = 0;
+    /// @brief Whether this console has backlight levels to set (the DS Lite
+    ///        does; the original DS, the DSi and the 3DS do not).
+    virtual bool HasBacklightLevels() const = 0;
 
     virtual const FileInfo& GetTriggerFileInfo() const = 0;
 };

@@ -44,12 +44,19 @@ public:
     void HideFavorites() override;
     void ShowStatistics() override;
     void HideStatistics() override;
+    void ShowMenu() override;
+    void HideMenu() override;
+    void ShowAbout() override;
+    void HideAbout() override;
     bool CanDeleteSelected() const override;
     void RequestDeleteSelected() override;
     void CancelDelete() override;
     void ConfirmDelete() override;
     const char* GetDeleteRomFileName() const override { return _deleteRomFileName; }
-    const char* GetDeleteSaveFileName() const override { return _deleteHasSave ? _deleteSaveFileName : ""; }
+    const char* GetDeleteSaveFileName() const override
+    {
+        return !_deleteHasSave ? "" : _deleteSaveInFolder ? _deleteFolderSaveFileName : _deleteSaveFileName;
+    }
     void GotoSettingsScreen() override;
 
     void Update() override;
@@ -84,10 +91,16 @@ public:
     }
 
     void SetBacklightLevel(int level) override;
+    bool HasBacklightLevels() const override;
 
     const RomBrowserDisplaySettings& GetRomBrowserDisplaySettings() const override
     {
         return _appSettingsService->GetAppSettings().romBrowserDisplaySettings;
+    }
+
+    SaveLocation GetSaveLocation() const override
+    {
+        return _appSettingsService->GetAppSettings().saveLocation;
     }
 
     virtual const FileInfo& GetTriggerFileInfo() const override { return _triggerFileInfo; }
@@ -109,7 +122,11 @@ private:
         TCHAR* buffer, u32 bufferLength) const;
     TCHAR _deleteRomFileName[256];
     TCHAR _deleteSaveFileName[256];
+    /// @brief "saves/<name>.sav", or empty when the saves folder setting does not apply.
+    TCHAR _deleteFolderSaveFileName[256];
     bool _deleteHasSave = false;
+    /// @brief Whether the save shown in the dialog is the one in the saves folder.
+    bool _deleteSaveInFolder = false;
     volatile bool _deleteCompleted = false;
 
     std::unique_ptr<SdFolder> _sdFolder;
@@ -124,6 +141,11 @@ private:
     TCHAR _navigateSelectName[256];
     FileInfo _triggerFileInfo;
     QueueTask<void> _navigateTask;
+    /// @brief Reads, on the io thread, whether the game about to launch is for
+    ///        the DSi only. Only set on a DS, where such a game cannot run.
+    QueueTask<void> _launchCheckTask;
+    /// @brief The answer, written by the task before it completes.
+    volatile bool _launchDsiOnly = false;
     bool _saveSettingsPending = false;
     std::unique_ptr<CoverRepository> _coverRepository;
     std::unique_ptr<IconRepository> _iconRepository;
@@ -136,9 +158,12 @@ private:
     void HandleFolderLoadDoneTrigger();
     void BackfillFavoritePaths();
     void HandleLaunchTrigger();
+    /// @brief Records the launch and hands the game to the loader.
+    void BeginLaunch();
     void HandleChangeDisplayModeTrigger();
     void HandleGotoSettingsScreenTrigger();
     void UpdateLastUsedFilepath();
     void SetPicoLoaderParams() const;
+    void SetSavesFolderPath(pload_params_t* loadParams) const;
     void LoadCheats() const;
 };

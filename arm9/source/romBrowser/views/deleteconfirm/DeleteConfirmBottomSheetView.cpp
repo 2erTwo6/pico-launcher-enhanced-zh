@@ -18,7 +18,9 @@
 
 #define LINE_WIDTH          216
 
-DeleteConfirmBottomSheetView::DeleteConfirmBottomSheetView(SharedPtr<DeleteConfirmViewModel> viewModel,
+static const char* const kHint = "X: 删除    A/B: 取消";
+
+DeleteConfirmBottomSheetView::DeleteConfirmBottomSheetView(SharedPtr<IDeleteConfirmViewModel> viewModel,
     const MaterialColorScheme* materialColorScheme, const IFontRepository* fontRepository)
     : _viewModel(std::move(viewModel))
     , _titleLabel(Label2DView::CreateShared(128, 16, 25, fontRepository->GetFont(FontType::Medium11)))
@@ -27,26 +29,38 @@ DeleteConfirmBottomSheetView::DeleteConfirmBottomSheetView(SharedPtr<DeleteConfi
     , _hintLabel(Label2DView::CreateShared(LINE_WIDTH, 16, 40, fontRepository->GetFont(FontType::Medium7_5)))
     , _materialColorScheme(materialColorScheme)
 {
-    _titleLabel->SetText(u"删除游戏？");
+    _titleLabel->SetText(_viewModel->GetTitle());
     _fileNameLabel->SetEllipsisStyle(LabelView::EllipsisStyle::Marquee);
-    _fileNameLabel->SetText(_viewModel->GetFileName());
-    if (_viewModel->HasSave())
+    if (const char16_t* name16 = _viewModel->GetNameLine16())
+        _fileNameLabel->SetText(name16);
+    else
+        _fileNameLabel->SetText(_viewModel->GetNameLine());
+    const char* detailLine = _viewModel->GetDetailLine();
+    _hasDetail = detailLine != nullptr && detailLine[0] != 0;
+    if (_hasDetail)
     {
-        char text[280];
-        mini_snprintf(text, sizeof(text), "存档 %s 也会被删除", _viewModel->GetSaveFileName());
         _saveLabel->SetEllipsisStyle(LabelView::EllipsisStyle::Ellipsis);
-        _saveLabel->SetText(text);
+        _saveLabel->SetText(detailLine);
     }
-    _hintLabel->SetText("X: 删除    A/B: 取消");
+    _hintLabel->SetText(kHint);
     AddChildTail(_titleLabel.GetPointer());
     AddChildTail(_fileNameLabel.GetPointer());
-    if (_viewModel->HasSave())
+    if (_hasDetail)
         AddChildTail(_saveLabel.GetPointer());
     AddChildTail(_hintLabel.GetPointer());
 }
 
 void DeleteConfirmBottomSheetView::Update()
 {
+    // The view model can replace the hint, e.g. to say how a delete went. Once
+    // there is an answer it stays on screen until the sheet is gone: the status
+    // clears as the sheet starts to close, and "X: delete" must not come back.
+    const char* status = _viewModel->GetStatusLine();
+    if (status != nullptr && status != _shownStatus)
+    {
+        _shownStatus = status;
+        _hintLabel->SetText(status);
+    }
     _titleLabel->SetPosition(TITLE_LABEL_X, _position.y + TITLE_LABEL_Y);
     _fileNameLabel->SetPosition(LINE_X, _position.y + FILE_NAME_Y);
     _saveLabel->SetPosition(LINE_X, _position.y + SAVE_Y);
@@ -69,7 +83,7 @@ void DeleteConfirmBottomSheetView::Draw(GraphicsContext& graphicsContext)
         _fileNameLabel->SetForegroundColor(_materialColorScheme->onSurface);
         _fileNameLabel->Draw(graphicsContext);
 
-        if (_viewModel->HasSave())
+        if (_hasDetail)
         {
             _saveLabel->SetBackgroundColor(backColor);
             _saveLabel->SetForegroundColor(_materialColorScheme->onSurfaceVariant);

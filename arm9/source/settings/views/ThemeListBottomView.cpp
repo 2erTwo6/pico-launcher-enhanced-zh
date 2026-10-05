@@ -21,7 +21,7 @@ void ThemeListBottomView::InitVram(const VramContext& vramContext)
 {
     _appBarView->InitVram(vramContext);
     _themeAdapter->InitVram(vramContext); // first initialize the shared vram for the items
-    _recyclerView->SetAdapter(_themeAdapter, 0); // set the adapter of the recycler
+    _recyclerView->SetAdapter(_themeAdapter, _viewModel->GetSelectedItem()); // set the adapter of the recycler
     _recyclerView->InitVram(vramContext); // init the vram for the recycler and its items
 }
 
@@ -29,6 +29,7 @@ void ThemeListBottomView::Update()
 {
     ViewContainer::Update();
     _viewModel->SetSelectedItem(_recyclerView->GetSelectedItem());
+    _appBarView->SetDeleteEnabled(_viewModel->CanDeleteSelected());
 }
 
 SharedPtr<View> ThemeListBottomView::MoveFocus(const SharedPtr<View>& currentFocus, FocusMoveDirection direction, View* source)

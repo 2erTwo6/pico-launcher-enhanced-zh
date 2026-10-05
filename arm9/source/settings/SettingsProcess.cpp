@@ -9,14 +9,20 @@
 #include "core/math/RgbMixer.h"
 #include "gui/GraphicsContext.h"
 #include "gui/Gx.h"
+#include "romBrowser/views/deleteconfirm/DeleteConfirmBottomSheetView.h"
+#include "settings/viewModels/ThemeDeleteConfirmViewModel.h"
 #include "settings/viewModels/ThemeListViewModel.h"
 #include "themes/ThemeInfoFactory.h"
 #include "themes/ThemeFactory.h"
 #include "SettingsProcess.h"
 
+/// How long the sheet shows how a delete went before it closes by itself.
+#define DELETE_RESULT_FRAMES    120
+
 SettingsProcess::SettingsProcess(IAppSettingsService& appSettingsService)
     : _mainObjPltt(GFX_PLTT_OBJ_MAIN)
     , _mainObjVram(GFX_OBJ_MAIN)
+    , _mainObjDialogVram(GFX_OBJ_MAIN, 128 * 1024)
     , _subObjVram(GFX_OBJ_SUB)
     , _textureVram((vu16*)0x06860000)
     , _texturePaletteVram((vu16*)0x6880000)
@@ -26,7 +32,8 @@ SettingsProcess::SettingsProcess(IAppSettingsService& appSettingsService)
     , _inputProvider(&_keyInputSource, &_touchInputSource)
     , _inputRepeater(&_inputProvider,
         InputKey::DpadLeft | InputKey::DpadRight | InputKey::DpadUp | InputKey::DpadDown | InputKey::L | InputKey::R,
-        25, 8) { }
+        25, 8)
+    , _dialogPresenter(&_focusManager, &_mainObjDialogVram) { }
 
 void SettingsProcess::Run()
 {
@@ -41,11 +48,14 @@ void SettingsProcess::Run()
     mem_setVramEMapping(MEM_VRAM_E_TEX_PLTT_SLOT_0123);
 
     LoadTheme();
+    // also resets the scrim and the sheet layers the browser may have left set
+    _dialogPresenter.InitVram();
 
     _settingsController = std::make_unique<SettingsController>(&_appSettingsService, &_ioTaskQueue);
     _settingsController->Initialize();
 
-    auto viewModel = SharedPtr<ThemeListViewModel>::MakeShared(_settingsController.get());
+    auto viewModel = SharedPtr<ThemeListViewModel>::MakeShared(_settingsController.get(),
+        _appSettingsService.GetAppSettings().theme);
     _themeListBottomView = ThemeListBottomView::CreateShared(viewModel,
         &_theme->GetMaterialColorScheme(), _theme->GetRomBrowserViewFactory(),
         _theme->GetThemeFileIconFactory(), &_vblankTextureLoader);
@@ -68,7 +78,8 @@ void SettingsProcess::Run()
 
     GFX_PLTT_BG_MAIN[0] = ColorConverter::ToGBGR565(materialColorScheme.inverseOnSurface);
     GFX_PLTT_BG_MAIN[31] = ColorConverter::ToGBGR565(materialColorScheme.scrim);
-    REG_DISPCNT = 0x21191B;
+    // BG1 and BG2 are the sheet and its scrim, as in App
+    REG_DISPCNT = 0x211F1B;
     REG_BG0HOFS = 0;
     REG_BG0VOFS = 0;
     REG_BG0CNT = 3;
@@ -102,6 +113,10 @@ void SettingsProcess::Run()
 
     rtos_disableIrqMask(RTOS_IRQ_VCOUNT);
     rtos_setIrqFunc(RTOS_IRQ_VCOUNT, nullptr);
+
+    // Let the IO thread finish its tasks while the controller they use is still
+    // alive; the members are destroyed controller first, queue last.
+    _ioTaskQueue.StopThread();
 }
 
 void SettingsProcess::Exit()
@@ -125,13 +140,24 @@ void SettingsProcess::InitVramMapping() const
 
 void SettingsProcess::LoadTheme()
 {
+    // The selector is always drawn as a Material theme. A custom theme's own
+    // cells and backgrounds could make the one screen where you change it hard
+    // to read. It keeps the active theme's primary color and dark setting, so it
+    // still looks like it, and it has no folder, so it loads no files of its own.
     ThemeInfoFactory themeInfoFactory;
-    auto themeInfo = themeInfoFactory.CreateFromThemeFolder(_appSettingsService.GetAppSettings().theme);
-    if (!themeInfo)
+    auto activeThemeInfo = themeInfoFactory.CreateFromThemeFolder(_appSettingsService.GetAppSettings().theme);
+    std::unique_ptr<ThemeInfo> themeInfo;
+    if (activeThemeInfo)
+    {
+        themeInfo = std::make_unique<ThemeInfo>("", ThemeType::Material, "", "", "",
+            activeThemeInfo->GetPrimaryColor(), activeThemeInfo->GetIsDarkTheme());
+    }
+    else
     {
         LOG_DEBUG("Failed to load theme '%s'. Using fallback theme.\n", _appSettingsService.GetAppSettings().theme.GetString());
         themeInfo = themeInfoFactory.CreateFallbackTheme();
     }
+    activeThemeInfo.reset();
     _theme = ThemeFactory().CreateFromThemeInfo(themeInfo.get());
     themeInfo.reset();
     _theme->LoadRomBrowserResources(_mainVramContext, _subVramContext);
@@ -186,6 +212,7 @@ void SettingsProcess::Update()
     {
         HandleInput();
     }
+    SyncDeleteSheet();
 
     // if (_topBackground)
     // {
@@ -196,6 +223,8 @@ void SettingsProcess::Update()
         _bottomBackground->Update();
     }
 
+    _dialogPresenter.Update();
+
     _themeListBottomView->Update();
     _themeListTopView->Update();
 }
@@ -203,25 +232,89 @@ void SettingsProcess::Update()
 void SettingsProcess::HandleInput()
 {
     _focusManager.Update(_inputRepeater);
+    // While a delete is asked for, running or showing its result, taps belong
+    // to the sheet; the list behind it must not take them, even in the frame
+    // before the sheet appears.
+    bool toSheet = _dialogPresenter.IsBottomSheetVisible()
+        || _settingsController->GetDeleteState() != ThemeDeleteState::None;
     Point touchPoint;
     if (_inputRepeater.Triggered(InputKey::Touch) &&
         _inputRepeater.GetCurrentTouchPoint(touchPoint))
     {
         // pen down
-        _themeListBottomView->HandlePenDown(touchPoint, _focusManager);
+        if (toSheet)
+            _dialogPresenter.HandlePenDown(touchPoint, _focusManager);
+        else
+            _themeListBottomView->HandlePenDown(touchPoint, _focusManager);
         _lastTouchPoint = touchPoint;
     }
     else if (_inputRepeater.Released(InputKey::Touch))
     {
         // pen up
-        _themeListBottomView->HandlePenUp(_lastTouchPoint, _focusManager);
+        if (toSheet)
+            _dialogPresenter.HandlePenUp(_lastTouchPoint, _focusManager);
+        else
+            _themeListBottomView->HandlePenUp(_lastTouchPoint, _focusManager);
     }
     else if (_inputRepeater.Current(InputKey::Touch)
         && _inputRepeater.GetCurrentTouchPoint(touchPoint))
     {
         // pen move
-        _themeListBottomView->HandlePenMove(touchPoint, _focusManager);
+        if (toSheet)
+            _dialogPresenter.HandlePenMove(touchPoint, _focusManager);
+        else
+            _themeListBottomView->HandlePenMove(touchPoint, _focusManager);
         _lastTouchPoint = touchPoint;
+    }
+}
+
+void SettingsProcess::SyncDeleteSheet()
+{
+    switch (_settingsController->GetDeleteState())
+    {
+        case ThemeDeleteState::Confirming:
+        {
+            if (!_deleteSheetShown)
+            {
+                auto viewModel = SharedPtr<ThemeDeleteConfirmViewModel>::MakeShared(_settingsController.get());
+                _dialogPresenter.ShowDialog(DeleteConfirmBottomSheetView::CreateShared(
+                    std::move(viewModel), &_theme->GetMaterialColorScheme(), _theme->GetFontRepository()));
+                _deleteSheetShown = true;
+            }
+            break;
+        }
+        case ThemeDeleteState::Finished:
+        {
+            // the sheet shows how it went for a moment, then closes by itself
+            // once: a partial delete restarts the selector here, and the sheet
+            // must keep its result on screen while the selector fades out
+            if (++_deleteResultFrames == DELETE_RESULT_FRAMES)
+            {
+                _settingsController->EndDeleteTheme();
+            }
+            break;
+        }
+        case ThemeDeleteState::None:
+        {
+            // Forget the sheet at once: mashing A cancels it and asks again
+            // while it is still sliding out, and that new request must get a
+            // sheet of its own (the presenter queues it behind the old one).
+            _deleteResultFrames = 0;
+            _deleteSheetShown = false;
+            // The delete sheet is the only one this screen has, so with no
+            // delete asked for, any sheet still up is closed. CloseDialog does
+            // nothing until a sheet is fully up, so it is asked every frame.
+            if (_dialogPresenter.IsBottomSheetVisible())
+            {
+                _dialogPresenter.CloseDialog();
+            }
+            break;
+        }
+        case ThemeDeleteState::Deleting:
+        {
+            _settingsController->UpdateDeleteTheme();
+            break;
+        }
     }
 }
 
@@ -261,7 +354,10 @@ void SettingsProcess::Draw()
         _bottomBackground->Draw(mainGraphicsContext);
     }
 
+    _dialogPresenter.ApplyClipArea(mainGraphicsContext);
     _themeListBottomView->Draw(mainGraphicsContext);
+    mainGraphicsContext.ResetClipArea();
+    _dialogPresenter.Draw(mainGraphicsContext);
     _themeListTopView->Draw(subGraphicsContext);
 
     _mainObjPltt.EndOfFrame();
@@ -296,6 +392,7 @@ void SettingsProcess::VBlank()
     }
 
     _themeListBottomView->VBlank();
+    _dialogPresenter.VBlank();
     _vblankTextureLoader.VBlank();
 
     _themeListTopView->VBlank();

@@ -8,6 +8,115 @@
 - The launcher UI is now in Simplified Chinese, including all numerals and Latin
   text, drawn with a WenQuanYi Bitmap Song dot-matrix font. The old proportional
   Japanese font files are replaced by a single 9pt bitmap `.nft2` font in `arm9/data`.
+- Delete a theme from the theme selector. The trash button at the bottom of its app bar deletes
+  the highlighted theme's folder after a confirmation that names the theme and its folder (X
+  confirms, A or B cancel), and the selector starts again without it. The theme in use, `material`
+  and `raspberry` can't be deleted, and nothing is deleted when a file inside is read-only or the
+  folder is deeper or larger than a theme should be. Tracked in #5.
+
+#### Fixed
+- In the theme selector, a folder whose `theme.json` can't be read shows its own name, and A does
+  nothing on it. The list reuses its rows as it scrolls, and such a row used to keep the theme it
+  showed before, so A could apply that other theme.
+
+### [enhanced-v1.9.0]
+
+#### Added
+- A saves folder. With `"saveLocation": "saves"` in `settings.json`, a DS game's save lives in a
+  `saves` folder inside the game's folder, the layout TWiLight Menu++ uses, so both launchers can
+  share one card. A save still next to the game is moved into the folder the first time the game
+  is launched, deleting the game removes the save from the folder, and `saves` folders stay out of
+  the browser. Off by default. Homebrew, DSiWare and games launched through an emulator keep
+  their saves where they were. Asked for in LNH-team/pico-launcher#63.
+- Closing the lid puts the console to sleep, and opening it wakes it where it was. From
+  marlooonxdd (#23).
+- A switch for launch tracking. With `"launchTracking": false` in `settings.json` the launcher
+  keeps no record of launches: no launch count, no play time, no last played date. What was
+  recorded before stays, and favorites and completed keep working. On by default. Asked for
+  in #9.
+
+#### Changed
+- Focus and selection look the same way on every button. The chosen option keeps its colored
+  circle, as before, and the button you are on now has its icon in the theme's accent color and
+  a light tint of that color behind it. Focusing an option that was not chosen used to paint it
+  like a chosen one. The menu's rows follow the same rule, with the accent icon on top of their
+  highlight bar.
+- The theme selector is always drawn as a Material theme, in the colors of the theme you use
+  (its primary color and its dark setting). A custom theme's own cells and backgrounds could
+  make the list you change it from hard to read. The top screen still previews the highlighted
+  theme.
+- The theme selector no longer shows the version in the corner of the preview, where it covered
+  the picture. The about sheet shows the version and the commit, and the boot screen shows them
+  while the launcher loads.
+- The icon buttons' selector VRAM offset starts at zero instead of whatever was in memory. Nothing
+  drew before it was set, so nothing changes on screen; it is an uninitialised member less. From
+  marlooonxdd (#24).
+
+#### Fixed
+- The brightness row in display settings only shows on a DS Lite. On an original DS, a DSi, or a 3DS
+  running from a DSpico, its four levels did nothing (#27).
+- The four brightness levels have icons that tell them apart: the second and third used to look
+  the same.
+- On a DS or DS Lite, a game made for the DSi only is no longer launched into a white screen:
+  the launcher says `Needs a DSi or 3DS` and stays in the browser. Nothing changes on
+  a DSi or 3DS. Promised in #22.
+- The short message at the bottom of the screen no longer cuts off the tail of letters like g
+  and y.
+- Custom covers with fewer than 256 colors, or saved with a newer BMP header as GIMP does, are
+  drawn as they are instead of as colored noise, and covers saved top to bottom are no longer
+  upside down. A cover or icon the launcher can't read gives way to the next one in line, so it
+  no longer draws garbage or blanks out the game's own icon. Reported by shin on Discord.
+- In the cover flow layout, pressing Down from the app bar in an empty folder leaves the highlight
+  where it is. It used to vanish, and A did nothing until Up or B.
+
+### [enhanced-v1.8.0]
+
+#### Added
+- An about sheet, behind the small button in the menu's title row: Pico Launcher by the LNH
+  team on one side and Enhanced by rasalopa on the other, the version with its commit and the
+  repository the build came from, and a cheat sheet of the controls that have no button of
+  their own. A build from another repository names that repository, so a build always says
+  where it came from.
+- The launcher says which build it is: the version at the top-right of the statistics panel,
+  and the version with the commit it was built from on the bottom screen while it boots and
+  at the bottom-right of the theme selector's top screen, so a report can name the build.
+- A gold star above the game's icon marks the most launched game, the one that heads the
+  statistics panel's list.
+
+#### Changed
+- The app bar is down to three buttons: back, a three-dot menu and display settings, from the
+  six the fork had grown to (upstream has two). Recently
+  played, favorites, statistics, delete game and the favorites and completed filters moved into
+  the sheet the menu opens, each with its name, and the two filters say `on` or `off` there.
+  The long presses on the clock and the heart went with their buttons, so no app bar button
+  hides a second action behind a hold any more. Picking a panel from the menu opens it in the
+  menu's place.
+- The theme selector opens on the theme you are using instead of the first one in the list,
+  so a long list no longer has to be scrolled to find it (fixes #17).
+- The letter an L/R jump lands on now appears for a moment at the bottom of the touch
+  screen, the same way the screenshot message does, instead of replacing the game count on
+  the top screen. It shows on every theme, including the ones that hide the count.
+- The game count left the top-left of the top screen and heads the statistics panel instead,
+  as the count of the folder you are in. Themes that position or hide `topGameCount` keep
+  loading; the key is ignored now (#18).
+- The launch count and play time at the top-right of the top screen are switched off. The time
+  counted the clock while a game was open, not play (#9), so it overstated. The code is kept
+  behind a switch for when the counting is fixed.
+- The favorite and completed markers left the top-right of the top screen and now sit above
+  the game's icon, astride the card's top edge, without the pill, drawn as crisp pixel shapes
+  with an outline so they read on any theme. A custom theme that does not place them itself
+  gets them above its icon the same way; one that sets `topLaunchInfo` keeps its pill where
+  it put it.
+- The statistics panel drops its total launches and play time line for the same reason, kept
+  behind a switch the same way. The three most launched games keep their launch counts.
+- The statistics panel was redrawn: a row of four figures with an icon each (games in the
+  folder, played, favorites, completed), the three most launched games in a list with the
+  counts against the right edge, and the last game played next to the clock icon. Names
+  show without their file extension there.
+
+### [enhanced-v1.7.0]
+
+#### Added
 - Hold START for about half a second to save a screenshot of both screens to
   `/_pico/screenshots`, as two BMP files that share a number. A short message on the lower
   screen confirms the write, or tells you it could not save. Sent upstream as PR #85.

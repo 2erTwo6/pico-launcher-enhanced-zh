@@ -57,7 +57,10 @@ SharedPtr<View> CoverFlowRecyclerViewBase::MoveFocus(const SharedPtr<View>& curr
         // incoming focus
         if (direction == FocusMoveDirection::Down)
         {
-            return _selectedItem ? _selectedItem->view : SharedFromThis();
+            // An empty folder has nothing to take the focus, so it stays where it
+            // is. Handing it to this container left the highlight nowhere and A
+            // doing nothing until Up or B.
+            return _selectedItem ? _selectedItem->view : nullptr;
         }
         else
         {

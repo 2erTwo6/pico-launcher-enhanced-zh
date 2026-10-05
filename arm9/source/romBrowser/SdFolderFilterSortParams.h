@@ -23,6 +23,9 @@ public:
     ///        purpose, so it stays valid when a filter is toggled without
     ///        reloading the folder.
     bool hideEmptyFolders = false;
+    /// @brief When true, folders named "saves" are dropped: with the saves folder setting
+    ///        on they hold save files the browser has nothing to show for.
+    bool hideSavesFolders = false;
     const IGameDataService* gameDataService = nullptr;
 
     SdFolderFilterSortParams() { }

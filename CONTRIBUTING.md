@@ -6,7 +6,7 @@ Thanks for your interest! This fork welcomes bug reports, feature ideas and pull
 
 - **Bugs**: open an issue with what you did, what you expected, what happened, and your console model (DS / DS Lite / DSi). A photo of the screen helps.
 - **Features**: open an issue first so we can talk about the design before you invest time. Small quality-of-life features in the spirit of the existing ones are the best fit.
-- **Upstream or here?** Improvements to the launcher's core (display modes, themes, cheats, file associations) belong in [upstream Pico Launcher](https://github.com/LNH-team/pico-launcher) — please send them there so every user benefits. This fork focuses on the library features listed in [docs/Enhanced.md](docs/Enhanced.md).
+- **Upstream or here?** Improvements to the launcher's core (display modes, themes, cheats, file associations) belong in [upstream Pico Launcher](https://github.com/LNH-team/pico-launcher). Please send them there so every user benefits. This fork focuses on the library features listed in [docs/Enhanced.md](docs/Enhanced.md).
 
 ## Building
 
@@ -29,7 +29,7 @@ The build must finish without new warnings.
 
 ## Things to know about this codebase
 
-- The ARM9 does everything (UI, filesystem, decoding); the ARM7 is a minimal servant (touch, SD sectors, RTC, power chip). Keep it that way — and keep all ARM7 SPI access on its main thread, the bus is shared with the touch screen.
+- The ARM9 does everything (UI, filesystem, decoding); the ARM7 is a minimal servant (touch, SD sectors, RTC, power chip). Keep it that way, and keep all ARM7 SPI access on its main thread: the bus is shared with the touch screen.
 - `gamedata.json` is read by external tools ([PicoDex](https://github.com/rasalopa/picodex)). Changing its format needs a matching change there; unknown keys are dropped on save, so additions must be coordinated.
 - Launching a game is a cold restart: no launcher state survives except what is written to the SD card.
 - `docs/Enhanced.md` and `docs/GameData.md` document every feature and format in detail.

@@ -25,10 +25,18 @@ public:
         _appBarView->Focus(focusManager, 0);
     }
 
+    /// @brief Dims the delete button when the highlighted theme can't be deleted.
+    void SetDeleteEnabled(bool enabled)
+    {
+        _appBarView->SetButtonEnabled(APP_BAR_BUTTON_DELETE, enabled);
+    }
+
 private:
     enum AppBarButton
     {
-        APP_BAR_BUTTON_BACK = 0
+        APP_BAR_BUTTON_BACK = 0,
+        // the one end button, at the bottom of the bar, away from Back
+        APP_BAR_BUTTON_DELETE = 1
     };
 
     SharedPtr<ThemeListViewModel> _viewModel;

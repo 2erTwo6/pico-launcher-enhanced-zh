@@ -5,9 +5,14 @@ class ISettingsController;
 class ThemeListViewModel
 {
 public:
-    explicit ThemeListViewModel(ISettingsController* settingsController);
+    /// @param activeThemeFolderName Folder name of the theme in use; the list opens on it when listed.
+    ThemeListViewModel(ISettingsController* settingsController, const char* activeThemeFolderName);
 
     void NavigateUp() const;
+
+    /// @brief Whether the highlighted theme may be deleted, see ISettingsController::CanDeleteTheme.
+    bool CanDeleteSelected() const;
+    void RequestDeleteSelected() const;
 
     ISettingsController* GetSettingsController() const
     {
