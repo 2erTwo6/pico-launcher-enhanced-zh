@@ -22,6 +22,15 @@ static u32 readU32(const u8* header, u32 offset)
     return value;
 }
 
+// The loader's rule for homebrew.
+static bool isHomebrew(const u8* header)
+{
+    return (header[HEADER_MAKER_CODE] == 0 && header[HEADER_MAKER_CODE + 1] == 0)
+        || (readU32(header, HEADER_ARM9_AUTOLOAD_DONE_HOOK) == 0 &&
+            readU32(header, HEADER_ARM7_AUTOLOAD_DONE_HOOK) == 0)
+        || readU32(header, HEADER_ARM7_LOAD_ADDRESS) >= 0x03000000;
+}
+
 bool NdsRomHeader::UsesCardSave(const FastFileRef& romFileRef)
 {
     const auto file = std::make_unique<File>();
@@ -35,12 +44,8 @@ bool NdsRomHeader::UsesCardSave(const FastFileRef& romFileRef)
         return false;
     }
 
-    // The loader's rule for homebrew, which it launches without a save file.
-    bool homebrew = (header[HEADER_MAKER_CODE] == 0 && header[HEADER_MAKER_CODE + 1] == 0)
-        || (readU32(header.get(), HEADER_ARM9_AUTOLOAD_DONE_HOOK) == 0 &&
-            readU32(header.get(), HEADER_ARM7_AUTOLOAD_DONE_HOOK) == 0)
-        || readU32(header.get(), HEADER_ARM7_LOAD_ADDRESS) >= 0x03000000;
-    if (homebrew)
+    // the loader launches homebrew without a save file
+    if (isHomebrew(header.get()))
     {
         return false;
     }
@@ -56,12 +61,15 @@ bool NdsRomHeader::IsDsiOnly(const FastFileRef& romFileRef)
     const auto file = std::make_unique<File>();
     file->Open(romFileRef, FA_READ);
 
-    // 0 is a DS rom, 2 a DS rom with DSi extras, 3 a rom for the DSi only
-    u8 unitCode;
-    if (file->Seek(HEADER_UNIT_CODE) != FR_OK || !file->ReadExact(&unitCode, sizeof(unitCode)))
+    // Heap-allocated so it doesn't live on the io task's stack.
+    auto header = std::make_unique<u8[]>(HEADER_READ_SIZE);
+    if (!header || !file->ReadExact(header.get(), HEADER_READ_SIZE))
     {
         LOG_ERROR("Couldn't read the rom header, launching the game as it is\n");
         return false;
     }
-    return unitCode == UNIT_CODE_DSI_ONLY;
+
+    // 0 is a DS rom, 2 a DS rom with DSi extras, 3 a rom for the DSi only. Homebrew often
+    // says 3 and still runs on a DS, so only a game's unit code counts.
+    return header[HEADER_UNIT_CODE] == UNIT_CODE_DSI_ONLY && !isHomebrew(header.get());
 }

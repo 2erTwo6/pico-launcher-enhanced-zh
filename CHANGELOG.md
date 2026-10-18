@@ -12,6 +12,9 @@
   folder is deeper or larger than a theme should be. Tracked in #5.
 
 #### Fixed
+- Homebrew whose header says it is for the DSi only, like Pokémon Chest, launches on a DS again. The
+  check added in v1.9.0 turned it away with `Needs a DSi or 3DS`, but many homebrew apps say that
+  and still run on a DS; the check now only looks at games. Reported in #30.
 - In the theme selector, a folder whose `theme.json` can't be read shows its own name, and A does
   nothing on it. The list reuses its rows as it scrolls, and such a row used to keep the theme it
   showed before, so A could apply that other theme.

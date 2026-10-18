@@ -804,7 +804,7 @@ New files:
 
 ### DSi-only games refused on a DS
 
-On a DS or DS Lite, pressing A on a game made only for the DSi no longer launches it into a white screen: the launcher stays in the browser and says Needs a DSi or 3DS. Nothing changes on a DSi or 3DS.
+On a DS or DS Lite, pressing A on a game made only for the DSi no longer launches it into a white screen: the launcher stays in the browser and says Needs a DSi or 3DS. Homebrew is left alone, since many homebrew apps say DSi only and still run on a DS. Nothing changes on a DSi or 3DS.
 
 - **Commits:** `6e199bb`
 - **Upstream:** None found.
