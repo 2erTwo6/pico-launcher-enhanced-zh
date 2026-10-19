@@ -806,9 +806,9 @@ New files:
 
 On a DS or DS Lite, pressing A on a game made only for the DSi no longer launches it into a white screen: the launcher stays in the browser and says Needs a DSi or 3DS. Homebrew is left alone, since many homebrew apps say DSi only and still run on a DS. Nothing changes on a DSi or 3DS.
 
-- **Commits:** `6e199bb`
+- **Commits:** `6e199bb`, `a5671d3`
 - **Upstream:** None found.
-- **Fork issues:** [#22](https://github.com/rasalopa/pico-launcher-enhanced/issues/22), for the DS side
+- **Fork issues:** [#22](https://github.com/rasalopa/pico-launcher-enhanced/issues/22), for the DS side; [#30](https://github.com/rasalopa/pico-launcher-enhanced/issues/30), the homebrew exception
 
 <details><summary>Files: 5 upstream, 2 new</summary>
 

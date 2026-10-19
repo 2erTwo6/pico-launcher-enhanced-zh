@@ -18,6 +18,9 @@
 - In the theme selector, a folder whose `theme.json` can't be read shows its own name, and A does
   nothing on it. The list reuses its rows as it scrolls, and such a row used to keep the theme it
   showed before, so A could apply that other theme.
+- The cover tools no longer end in an error when their output is piped or redirected on Windows
+  (fixes #13), and a cover whose write is cut short no longer stays on the card under its real
+  name, so the next run fetches it again (fixes #14).
 
 ### [enhanced-v1.9.0]
 
