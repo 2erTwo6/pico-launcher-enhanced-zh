@@ -151,3 +151,4 @@ docker run --rm -v "$PWD":/work -w /work skylyrac/blocksds:slim-v1.16.0 make
 
 启动器的基础工作全部归功于 LNH 团队——本分支只是在他们出色工作的基础上继续完善。
 test
+test sign
