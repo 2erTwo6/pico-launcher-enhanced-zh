@@ -11,6 +11,17 @@
   and `raspberry` can't be deleted, and nothing is deleted when a file inside is read-only or the
   folder is deeper or larger than a theme should be. Tracked in #5.
 
+#### Changed
+- ROMs opened through a file association, such as GB or SNES ROMs run by an emulator, count as
+  games: X marks them favorite, holding X marks them completed, Delete game deletes them,
+  SELECT + A can pick them, and the statistics panel counts them in the folder. Deleting one
+  keeps its save, since an emulator may name its save its own way and a `.sav` with the same
+  name may belong to a DS game; when there is a save, the confirmation says it is kept. `.gba`
+  and `.nds` games work as before. Text, pictures, video and music (`txt`, `bmp`, `png`, `jpg`,
+  `jpeg`, `gif`, `dpg`, `avi`, `mp3`, `ogg`, `wav`, `mod`, `xm`, `mid`, `nsf`) are still not
+  games. Requested in #29. The idea and the file type change come from djaysan's
+  pico-launcher-dsbios.
+
 #### Fixed
 - Homebrew whose header says it is for the DSi only, like Pokémon Chest, launches on a DS again. The
   check added in v1.9.0 turned it away with `Needs a DSi or 3DS`, but many homebrew apps say that

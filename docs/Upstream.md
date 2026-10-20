@@ -75,7 +75,7 @@ New files:
 
 ### Game deletion
 
-Delete game in the menu deletes the highlighted game after a confirmation sheet (X confirms), removing the ROM, its save and its favorite and play data. The entry is faded unless a DS game (homebrew included) or a GBA game is highlighted, since only those can be deleted; folders, and files opened through another file association such as GB or SNES ROMs, can't be.
+Delete game in the menu deletes the highlighted game after a confirmation sheet (X confirms), removing the ROM, its save and its favorite and play data. The entry is faded unless a DS game (homebrew included) or a GBA game is highlighted, since only those can be deleted; folders, and files opened through another file association such as GB or SNES ROMs, can't be. Later widened: ROMs opened through any other file association can be deleted too and keep their save; text, pictures, video and music still can't.
 
 - **Commits:** `94f405e`
 - **Upstream:** None found.
@@ -115,7 +115,7 @@ Going up a folder puts the highlight on the folder you just came out of instead 
 
 - **Commits:** `da90e33`
 - **Upstream:** None found. [PR #84](https://github.com/LNH-team/pico-launcher/pull/84) touches the same go-up path but not this.
-- **Notes:** Also adds the predicate the menu uses to fade Delete game on anything that is not a DS or GBA game, and the faded, inert icon button state (`SetEnabled` in `IconButtonView`, `SetButtonEnabled` in `AppBarView`) that the theme selector's delete button uses, so Deleting themes needs this commit. The app bar focus look it set was later replaced by `3a5d6da`.
+- **Notes:** Also adds the predicate the menu uses to fade Delete game on anything that is not a DS or GBA game (later widened to ROMs opened through any other file association, except text, pictures, video and music), and the faded, inert icon button state (`SetEnabled` in `IconButtonView`, `SetButtonEnabled` in `AppBarView`) that the theme selector's delete button uses, so Deleting themes needs this commit. The app bar focus look it set was later replaced by `3a5d6da`.
 
 <details><summary>Files: 12 upstream, 0 new</summary>
 
@@ -138,7 +138,7 @@ Upstream files touched:
 
 ### Random game (SELECT + A)
 
-Hold SELECT and press A to launch a random DS or GBA game from the folder you are in, homebrew included; ROMs opened through another file association, such as GB or SNES, are never picked. With Only favorites or Only completed on, it picks from those games in that folder. SELECT alone does nothing, so the DSi's SELECT + volume brightness shortcut never launches a game.
+Hold SELECT and press A to launch a random DS or GBA game from the folder you are in, homebrew included; ROMs opened through another file association, such as GB or SNES, are never picked. Later widened: they are picked too, except text, pictures, video and music. With Only favorites or Only completed on, it picks from those games in that folder. SELECT alone does nothing, so the DSi's SELECT + volume brightness shortcut never launches a game.
 
 - **Commits:** `780999c`, `012396f`
 - **Upstream:** None found.
@@ -163,7 +163,7 @@ Upstream files touched:
 
 ### Favorites (mark, filter and panel)
 
-Press X on a DS or GBA game (homebrew included) to mark it as a favorite, shown as a heart above its icon on the top screen. Only favorites in the menu filters the folder's games down to favorites, with subfolders still listed, and Favorites in the menu lists favorites from every folder, with their play time, so you can jump straight to one.
+Press X on a DS or GBA game (homebrew included; later widened to ROMs opened through any other file association, except text, pictures, video and music) to mark it as a favorite, shown as a heart above its icon on the top screen. Only favorites in the menu filters the folder's games down to favorites, with subfolders still listed, and Favorites in the menu lists favorites from every folder, with their play time, so you can jump straight to one.
 
 - **Commits:** `7e516f5`, `68e2f04`, `8e7ef8d`, `b0ef3fc`
 - **Upstream:** Asked for in [LNH-team/pico-launcher#33](https://github.com/LNH-team/pico-launcher/issues/33). [PR #67](https://github.com/LNH-team/pico-launcher/pull/67) by tasken, still being worked on, adds favorites its own way: heart badges on the list items, a heart button on the app bar and a virtual favorites folder, stored by its own service. [PR #37](https://github.com/LNH-team/pico-launcher/pull/37) also has favorites, marked from the game details sheet, listed from a heart button and kept in `/_pico/extras/state.bin`, and [#81](https://github.com/LNH-team/pico-launcher/issues/81) proposes a favorites folder of shortcut files toggled with X. Taking any of them needs a migration of the data.
@@ -221,7 +221,7 @@ New files:
 
 ### Completed games
 
-Hold X for about half a second on a DS or GBA game (homebrew included) to mark it as completed, shown as a green check above its icon next to the heart. Only completed in the menu filters the folder's games to completed ones, with subfolders still listed, and the statistics panel counts them.
+Hold X for about half a second on a DS or GBA game (homebrew included; later widened to ROMs opened through any other file association, except text, pictures, video and music) to mark it as completed, shown as a green check above its icon next to the heart. Only completed in the menu filters the folder's games to completed ones, with subfolders still listed, and the statistics panel counts them.
 
 - **Commits:** `6fd8022`
 - **Upstream:** None found.
