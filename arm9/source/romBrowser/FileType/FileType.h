@@ -56,6 +56,12 @@ public:
     /// @return \c true when the loader manages the save, or \c false otherwise.
     virtual bool UsesLoaderSave() const { return false; }
 
+    /// @brief Returns whether the save of a file of this type is known to be "<name>.sav", so
+    ///        deleting the file deletes that save too. An emulator may name its save its own way,
+    ///        and a "<name>.sav" next to its rom may then belong to a DS game with the same name.
+    /// @return \c true when the save of the file is "<name>.sav", or \c false otherwise.
+    virtual bool HasKnownSave() const { return false; }
+
     /// @brief Tries to set the launch parameters to launch a file of this file type at the specified \p filePath.
     /// @param launchParameters The launch parameters to set.
     /// @param filePath The file that is going to be launched.

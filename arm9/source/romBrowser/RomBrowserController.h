@@ -57,6 +57,7 @@ public:
     {
         return !_deleteHasSave ? "" : _deleteSaveInFolder ? _deleteFolderSaveFileName : _deleteSaveFileName;
     }
+    bool DeleteKeepsSave() const override { return _deleteKeepsSave; }
     void GotoSettingsScreen() override;
 
     void Update() override;
@@ -127,6 +128,8 @@ private:
     bool _deleteHasSave = false;
     /// @brief Whether the save shown in the dialog is the one in the saves folder.
     bool _deleteSaveInFolder = false;
+    /// @brief Whether the save stays when the game goes, see RequestDeleteSelected.
+    bool _deleteKeepsSave = false;
     volatile bool _deleteCompleted = false;
 
     std::unique_ptr<SdFolder> _sdFolder;
