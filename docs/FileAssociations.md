@@ -24,7 +24,7 @@ The file path is passed via argv.
 
 A file opened through a file association counts as a game, like a DS game:
 - **X** marks it as a favorite, and holding **X** marks it as completed.
-- **Delete game** in the menu deletes it. Its save stays: an emulator may name its save its own way, and a `.sav` with the same name may belong to a DS game in the same folder. The confirmation names that save as kept when there is one. `.gba` files are the exception: deleting one also deletes its `.sav`, as for a DS game.
+- **Delete game** in the menu deletes it. Its save stays: an emulator may name its save its own way, and a `.sav` with the same name may belong to a DS game in the same folder. The confirmation names that save as kept when there is one. `.gba` and `.agb` files are the exception: deleting one also deletes its `.sav`, as for a DS game.
 - **SELECT + A** can pick it as a random game.
 - It counts in the **in folder** figure of the statistics panel.
 

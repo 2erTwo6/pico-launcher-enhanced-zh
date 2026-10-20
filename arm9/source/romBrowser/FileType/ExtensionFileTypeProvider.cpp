@@ -73,7 +73,8 @@ const FileType* ExtensionFileTypeProvider::GetFileType(const TCHAR* path) const
 
         for (u32 i = 0; i < _appSettings.numberOfFileAssociations; i++)
         {
-            if (!strcasecmp(extension, _customFileTypes[i].GetShortName()))
+            // the association's own extension: an agb one has the short name "gba"
+            if (!strcasecmp(extension, _appSettings.fileAssociations[i].extension))
             {
                 return &_customFileTypes[i];
             }

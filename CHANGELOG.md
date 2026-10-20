@@ -32,6 +32,9 @@
 - The cover tools no longer end in an error when their output is piped or redirected on Windows
   (fixes #13), and a cover whose write is cut short no longer stays on the card under its real
   name, so the next run fetches it again (fixes #14).
+- `.agb` files show up and open with an `agb` file association in `settings.json`. The
+  association was looked up as `gba`, so they stayed hidden. An `agb` association now opens only
+  `.agb` files, and `.gba` files go by their own `gba` one.
 
 ### [enhanced-v1.9.0]
 
