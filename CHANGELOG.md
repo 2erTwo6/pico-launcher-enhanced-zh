@@ -2,7 +2,7 @@
 
 ## Enhanced fork
 
-### [Unreleased]
+### [enhanced-v1.10.0]
 
 #### Added
 - Delete a theme from the theme selector. The trash button at the bottom of its app bar deletes
