@@ -145,4 +145,4 @@ A theme can have a `preview.bin` file that is shown on the top screen in the the
 ## Theme selector look
 The theme selector is always drawn as a `material` theme with your theme's `primaryColor` and `darkTheme`, whatever the theme's type, so its list stays readable. Your theme shows through its icon in the list and its preview on the top screen.
 
-From the next release, the selector can also delete a theme's folder (see [Deleting themes](Enhanced.md#deleting-themes)). The theme in use and the two that come with the launcher, `material` and `raspberry`, can't be deleted there.
+The selector can also delete a theme's folder (see [Deleting themes](Enhanced.md#deleting-themes)). The theme in use and the two that come with the launcher, `material` and `raspberry`, can't be deleted there.

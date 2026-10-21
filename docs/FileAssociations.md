@@ -20,7 +20,6 @@ The file path is passed via argv.
     With this setup `.xyz` files will be opened by `/path/to/xyz/app.nds` and `.gba` files will be opened by `/myGbaApp.nds`.
 
 ## Files opened through a file association are games
-*Coming in the next release; v1.9.0 and earlier don't have it.*
 
 A file opened through a file association counts as a game, like a DS game:
 - **X** marks it as a favorite, and holding **X** marks it as completed.

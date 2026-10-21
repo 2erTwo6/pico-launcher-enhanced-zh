@@ -2,7 +2,7 @@
 
 Everything Pico Launcher Enhanced adds or changes on top of [upstream Pico Launcher](https://github.com/LNH-team/pico-launcher), one entry per feature, so each can be looked at on its own, though some build on others (the toast, the panels, the delete sheet, the game data file). Each entry says what it does, which commits make it up, whether upstream has an issue or a pull request about the same thing, and which upstream files it touches, which is where a merge can conflict.
 
-This page is up to date with v1.9.0 (`ad218ea`) and the unreleased changes after it, against upstream `develop` at `dc64a34`. The fork is not behind upstream: it merged upstream's latest commit, `dc64a34`, in `8f7d705`, so everything listed here is a change upstream does not have. Documentation files are left out of the file lists.
+This page is up to date with v1.10.0, against upstream `develop` at `dc64a34`. The fork is not behind upstream: it merged upstream's latest commit, `dc64a34`, in `8f7d705`, so everything listed here is a change upstream does not have. Documentation files are left out of the file lists.
 
 ## Browsing
 
@@ -161,7 +161,7 @@ Upstream files touched:
 
 ### ROMs opened by an emulator count as games
 
-Not in a release yet. A file opened through a file association, such as a GB or SNES ROM run by an emulator, counts as a game: X marks it favorite, holding X marks it completed, Delete game deletes it, SELECT + A can pick it, and the statistics panel counts it in the folder. Deleting one keeps its save, since an emulator may name its save its own way and a `.sav` with the same name may belong to a DS game; when there is such a `.sav`, the confirmation names it as kept. A fixed list of text, picture, video and music extensions stays out, listed in [FileAssociations.md](FileAssociations.md). The idea and the file type change come from djaysan's [pico-launcher-dsbios](https://github.com/djaysan/pico-launcher-dsbios).
+A file opened through a file association, such as a GB or SNES ROM run by an emulator, counts as a game: X marks it favorite, holding X marks it completed, Delete game deletes it, SELECT + A can pick it, and the statistics panel counts it in the folder. Deleting one keeps its save, since an emulator may name its save its own way and a `.sav` with the same name may belong to a DS game; when there is such a `.sav`, the confirmation names it as kept. A fixed list of text, picture, video and music extensions stays out, listed in [FileAssociations.md](FileAssociations.md). The idea and the file type change come from djaysan's [pico-launcher-dsbios](https://github.com/djaysan/pico-launcher-dsbios).
 
 - **Commits:** `1d38255`
 - **Upstream:** None found.
@@ -682,7 +682,7 @@ Upstream files touched:
 
 ### Deleting themes
 
-Not in a release yet. In the theme selector, a trash button at the bottom of the app bar deletes the highlighted theme's folder after a confirmation that names the theme and its folder. The theme in use, `material` and `raspberry` can't be deleted. The folder is read in full first and nothing is deleted when anything looks wrong: a read-only file, too deep or too many entries, a name that can't be read back, or a damaged folder link. Then `theme.json` goes first, the rest one entry at a time with every path checked to be inside the folder, and the selector starts again on the theme that took its place.
+In the theme selector, a trash button at the bottom of the app bar deletes the highlighted theme's folder after a confirmation that names the theme and its folder. The theme in use, `material` and `raspberry` can't be deleted. The folder is read in full first and nothing is deleted when anything looks wrong: a read-only file, too deep or too many entries, a name that can't be read back, or a damaged folder link. Then `theme.json` goes first, the rest one entry at a time with every path checked to be inside the folder, and the selector starts again on the theme that took its place.
 
 - **Commits:** `7883afa`, `6de7ef2`, `da2e05b`, `caf3a66`, `3199e3b`, `9a5e88a`
 - **Upstream:** None found.
@@ -905,7 +905,7 @@ New files:
 
 ### A theme row no longer keeps the theme it held before
 
-Not in a release yet. The theme selector reuses its rows as the list scrolls, and a row whose folder had no readable `theme.json` kept the text and the theme of whatever it showed before, so A could apply that other theme. The row now shows the folder name, and A does nothing on it.
+The theme selector reuses its rows as the list scrolls, and a row whose folder had no readable `theme.json` kept the text and the theme of whatever it showed before, so A could apply that other theme. The row now shows the folder name, and A does nothing on it.
 
 - **Commits:** `3fec27b`
 - **Upstream:** None found. Upstream has the same code.
@@ -922,7 +922,7 @@ Upstream files touched:
 
 ### `.agb` files open with an agb association
 
-Not in a release yet. An association was looked up by its short name, and an `agb` association's short name is `gba`, so `.agb` files didn't match it and stayed hidden, while `.gba` files could open with it. An association now matches on its own extension: an `agb` one opens `.agb` files, and `.gba` files go by their own `gba` one.
+An association was looked up by its short name, and an `agb` association's short name is `gba`, so `.agb` files didn't match it and stayed hidden, while `.gba` files could open with it. An association now matches on its own extension: an `agb` one opens `.agb` files, and `.gba` files go by their own `gba` one.
 
 - **Commits:** `72e45b4`
 - **Upstream:** None found. Upstream has the same code.
