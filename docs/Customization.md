@@ -50,7 +50,7 @@ User banner (`/_pico/banners/user/`) > game code based banner (`/_pico/banners/n
 Folder banners (`banner.bnr`) are looked up independently and do not participate in the above priority chain.
 
 ### Banner format
-Banners must be standard Nintendo DS(i) banner files (usually named `.bnr` or `banner.bin`). Both static icons and animated DSi-style icons are supported.
+Banners must be standard Nintendo DS(i) banner files. Both static icons and animated DSi-style icons are supported. The launcher only looks for the `.bnr` extension, so a banner that comes as a `.bin` file, like `banner.bin` or the animated icons some sites offer, works once you rename it to `.bnr`.
 
 ## Covers
 Custom covers are `.bmp` files shown on the top screen for the selected file. This works for any kind of file, not just NDS/GBA games.
