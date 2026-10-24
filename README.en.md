@@ -1,54 +1,67 @@
-# Pico Launcher Enhanced
+# Pico Launcher Enhanced (Simplified Chinese fork)
 
 [![Latest release](https://img.shields.io/github/v/release/rasalopa/pico-launcher-enhanced?display_name=tag&sort=semver&label=release)](../../releases/latest)
 [![Downloads](https://img.shields.io/github/downloads/rasalopa/pico-launcher-enhanced/total?label=downloads)](../../releases)
 [![License](https://img.shields.io/github/license/rasalopa/pico-launcher-enhanced)](LICENSE.txt)
 
-A feature fork of [Pico Launcher](https://github.com/LNH-team/pico-launcher) by the LNH team, adding library features inspired by modern consoles — favorites, play stats, recently played, and more — while staying fully compatible with stock SD cards: it is a drop-in `_picoboot.nds` replacement, and all upstream features remain intact.
+A feature fork of [Pico Launcher](https://github.com/LNH-team/pico-launcher) by the LNH team, adding library features inspired by modern consoles, like favorites, play stats and recently played, while staying fully compatible with stock SD cards. It is a drop-in `_picoboot.nds` replacement, and all upstream features remain intact.
 
-[简体中文说明](README.md)
+> **Simplified Chinese fork**
+>
+> This repository is the Simplified Chinese localization of [Pico Launcher Enhanced](https://github.com/rasalopa/pico-launcher-enhanced), aimed at Chinese readers.
+> The whole launcher interface is localized, and a single dot-matrix font draws the Chinese, English, digit and punctuation glyphs.
+> The repository layout, the installation steps and the SD card folders are unchanged from upstream.
+> The Chinese readme is [README.md](README.md).
 
-![Cover flow in the Material theme: a favorite, completed game, with the jump-by-initial letter in the top-left chip](docs/images/enhanced/Coverflow.png)
-![Icon grid in the Material theme, with the highlighted game's cover on the top screen](docs/images/enhanced/Grid.png)
-![A custom theme: the game count and launch info stay readable on their own backdrop](docs/images/enhanced/CustomTheme.png)
+![Cover flow in the Material theme: the most launched game, a favorite and completed, with its star, heart and check above the icon](docs/images/enhanced/Coverflow.png)
+![Icon grid in the Material theme: the most launched game, a favorite and completed, with its star, heart and check above the icon](docs/images/enhanced/Grid.png)
+![A custom theme: the game markers sit above the game's icon, drawn to read on any art](docs/images/enhanced/CustomTheme.png)
 ![The favorites panel, every favorite across all folders with its play time](docs/images/enhanced/Favorites.png)
 ![The statistics panel: totals, most launched games and the last one played](docs/images/enhanced/Statistics.png)
+![The menu: recently played, favorites, statistics, delete game, and the two filters with their state](docs/images/enhanced/Menu.png)
+![The about sheet: Pico Launcher by the LNH team, Enhanced by rasalopa, where the build came from, and a cheat sheet of the controls](docs/images/enhanced/About.png)
 
 *Taken on the console with the launcher's own screenshot key (hold START).*
 
 ## Features
 
-Everything upstream Pico Launcher offers (display modes, [custom icons, banners & covers](docs/Customization.md) for games *and folders*, [themes](docs/Themes.md), [cheats](docs/Cheats.md), [file associations](docs/FileAssociations.md) — see [Usage](docs/Usage.md)), plus:
+Everything upstream Pico Launcher offers (display modes, [custom icons, banners & covers](docs/Customization.md) for games *and folders*, [themes](docs/Themes.md), [cheats](docs/Cheats.md), [file associations](docs/FileAssociations.md); see [Usage](docs/Usage.md)), plus:
 
-- **Jump by initial** — press L or R to jump to the next initial letter in a folder sorted by name; a chip shows the letter you landed on
-- **Game count** of the current folder on the top screen
+- **A menu instead of a row of icons**: the app bar keeps back and display settings and gains a three-dot button; recently played, favorites, statistics, deletion and the two filters live in the sheet it opens, each with its name
+- **About sheet**: from the menu's title row: who made what, the exact build and the repository it came from, and a cheat sheet of the controls that have no button
+- **Jump by initial**: press L or R to jump to the next initial letter in a folder sorted by name; the letter you land on shows for a moment at the bottom of the touch screen
+- **Game count** of the current folder, at the top of the statistics panel
 - **Random game launch** with SELECT + A
-- **Favorites** — press X on a game; a heart shows on the top screen
-- **Completed games** — hold X on a game; a green check shows on the top screen
-- **Favorites and completed filters** — heart and check buttons in the app bar, tinted while active
-- **Favorites panel** — hold the heart button to see every favorite across all folders; tapping one jumps to it
-- **Recently played panel** — clock button in the app bar; tapping an entry jumps to the game
-- **Statistics panel** — hold the clock button for totals and most-played games
-- **Screenshots** — hold START for about half a second to save both screens to `/_pico/screenshots`
-- **Per-game launch tracking** — launch count and last-played date on the top screen
-- **Approximate play time** — per game and in the statistics panel
-- **Game deletion** — trash button with confirmation; removes the ROM and its save
-- **Brightness control** — set the DS Lite's backlight level from display settings
-- **Hide empty folders** — optional; folders with nothing playable inside are left out of the listing
-- **Cheats list that reads better** — the list wraps around at both ends, and X turns every cheat off at once
-- **Top strip readable on any theme** — the game count and launch info sit on their own backdrop, and a [custom theme](docs/Themes.md) can move or hide them
-- **Per-folder background music** — drop a `bgm.bcstm` inside a folder
-- **Time-of-day theme backgrounds** — optional night variants shown from 20:00 to 6:59
-- **Per-file game data** — favorites, completed marks and play stats belong to the ROM file, so two copies of a game never share them
+- **Favorites**: press X on a game; a heart shows on the top screen
+- **Completed games**: hold X on a game; a green check shows on the top screen
+- **Favorites and completed filters**: Only favorites and Only completed in the menu, each saying when it is on
+- **Favorites panel**: every favorite across all folders, from the menu; tapping one jumps to it
+- **Recently played panel**: from the menu; tapping an entry jumps to the game
+- **Statistics panel**: totals, most-played games and the launcher version, from the menu
+- **Screenshots**: hold START for about half a second to save both screens to `/_pico/screenshots`
+- **Per-game launch tracking**: launch count and last-played date, kept per game; the recently played panel shows each game's date, and the statistics panel the counts of the three most launched games; can be switched off in `settings.json`
+- **Approximate play time**: per game, in the favorites panel
+- **Game deletion**: from the menu, with confirmation; removes the ROM, and its save for a DS or GBA game
+- **ROMs run by an emulator count as games**: GB, SNES or any ROM opened through a file association can be marked, deleted and picked at random; see [FileAssociations.md](docs/FileAssociations.md)
+- **Theme deletion**: from the theme selector, with confirmation; the theme in use and the two that come with the launcher are kept
+- **A saves folder**: set `"saveLocation": "saves"` in `settings.json` and DS saves live in a `saves` folder next to the games, the layout TWiLight Menu++ uses, so both launchers can share one card; see [Usage.md](docs/Usage.md#settings)
+- **Brightness control**: set the DS Lite's backlight level from display settings
+- **Hide empty folders**: optional; folders with nothing playable inside are left out of the listing
+- **Cheats list that reads better**: the list wraps around at both ends, and X turns every cheat off at once
+- **Game markers on the top screen**: a gold star for the most launched game, a heart for a favorite and a check for a completed one, above the game's icon; a [custom theme](docs/Themes.md) can move or hide them
+- **Per-folder background music**: drop a `bgm.bcstm` inside a folder
+- **Time-of-day theme backgrounds**: optional night variants shown from 20:00 to 6:59
+- **Per-file game data**: favorites, completed marks and play stats belong to the ROM file, so two copies of a game never share them
 
 See [Enhanced features](docs/Enhanced.md) for details on each feature.
 
 ## Chinese localization and bitmap font
 
 The launcher interface is localized to Simplified Chinese. Every glyph shown by
-the launcher — Chinese, English letters, digits and punctuation — comes from the
-same 9pt WenQuanYi Bitmap Song dot-matrix font, converted to Nitro Font 2 in
-`arm9/data/BitmapSong-9pt.nft2`. The conversion script is
+the launcher, Chinese, English letters, digits and punctuation alike, comes from
+the same 9pt WenQuanYi Bitmap Song dot-matrix font, converted to Nitro Font 2 in
+`arm9/data/BitmapSong-9pt.nft2`, which replaces the proportional Japanese font
+files the launcher used to ship. The conversion script is
 `tools/make_chinese_bitmap_font.py`; the font is distributed under the GNU GPL
 v2 with the font embedding exception, see
 [`licenses/wqy-bitmap-song.txt`](licenses/wqy-bitmap-song.txt).
@@ -58,7 +71,7 @@ v2 with the font embedding exception, see
 1. Download `LAUNCHER.nds` from the [Releases](../../releases) page.
 2. Rename it to `_picoboot.nds` and place it in the root of your SD card, replacing the existing one.
 
-No other changes to your SD card are needed — themes, covers and the `_pico` folder from a stock setup keep working as-is.
+No other changes to your SD card are needed: themes, covers and the `_pico` folder from a stock setup keep working as-is.
 
 > [!NOTE]
 > To use Pico Launcher, the Pico Loader files (`aplist.bin`, `savelist.bin`, `picoLoader7.bin` and `picoLoader9.bin`) must also be present in the `/_pico` folder on your SD card.
@@ -117,15 +130,17 @@ Note: If you want to play DSiWare on the DSpico, additional files are required. 
 
 ## Extra tools
 
-The [`tools/`](tools/) directory contains desktop helper scripts for preparing SD card content — cover art converters and fetchers, banner and icon generators, and night background makers. See [Tools](docs/Tools.md).
+The [`tools/`](tools/) directory contains desktop helper scripts for preparing SD card content: cover art converters and fetchers, banner and icon generators, night background makers, and the font converter that builds `arm9/data/BitmapSong-9pt.nft2`. See [Tools](docs/Tools.md).
 
 ## Data formats
 
-The fork stores per-game data (favorites, launch counts, play time) in `/_pico/gamedata.json`. Each entry belongs to one ROM file — if a favorite or a play count is not where you expect it, [Data storage](docs/Enhanced.md#data-storage) explains why in a table. The file format itself is documented in [Game data](docs/GameData.md) for tool authors.
+The fork stores per-game data (favorites, launch counts, play time) in `/_pico/gamedata.json`. Each entry belongs to one ROM file. If a favorite or a play count is not where you expect it, [Data storage](docs/Enhanced.md#data-storage) explains why in a table. The file format itself is documented in [Game data](docs/GameData.md) for tool authors.
 
 ## Contributing
 
-Bug reports, ideas and pull requests are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
+Bug reports, ideas and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+Every change the fork makes on top of upstream is mapped in [The fork against upstream](docs/Upstream.md), with its commits and the upstream files it touches, so any of it can be taken on its own.
 
 ## License
 
@@ -143,4 +158,4 @@ Additional licenses may apply to the project. For details, see the `license` dir
 - [@Dartz150](https://github.com/Dartz150)
 - [@lifehackerhansol](https://github.com/lifehackerhansol)
 
-All credit for the launcher's foundation goes to the LNH team — this fork only builds on their excellent work.
+All credit for the launcher's foundation goes to the LNH team. This fork only builds on their excellent work.

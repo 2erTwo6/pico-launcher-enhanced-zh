@@ -58,9 +58,13 @@ public:
     ///        _triggerFileInfo: the launch flows overwrite that one, and a
     ///        delete must never act on anything but the file the user saw.
     virtual const char* GetDeleteRomFileName() const = 0;
-    /// @brief Save file that will be deleted along with the game, empty when
-    ///        there is none. Valid while the delete confirmation is shown.
+    /// @brief Save file that goes with the game, empty when there is none. It is
+    ///        deleted along with the game unless DeleteKeepsSave says it stays.
+    ///        Valid while the delete confirmation is shown.
     virtual const char* GetDeleteSaveFileName() const = 0;
+    /// @brief Whether deleting the game leaves its save alone, as for a rom an
+    ///        emulator runs. Valid while the delete confirmation is shown.
+    virtual bool DeleteKeepsSave() const = 0;
     virtual void GotoSettingsScreen() = 0;
 
     virtual void Update() = 0;

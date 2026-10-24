@@ -8,16 +8,40 @@
 - The launcher UI is now in Simplified Chinese, including all numerals and Latin
   text, drawn with a WenQuanYi Bitmap Song dot-matrix font. The old proportional
   Japanese font files are replaced by a single 9pt bitmap `.nft2` font in `arm9/data`.
+
+### [enhanced-v1.10.0]
+
+#### Added
 - Delete a theme from the theme selector. The trash button at the bottom of its app bar deletes
   the highlighted theme's folder after a confirmation that names the theme and its folder (X
   confirms, A or B cancel), and the selector starts again without it. The theme in use, `material`
   and `raspberry` can't be deleted, and nothing is deleted when a file inside is read-only or the
   folder is deeper or larger than a theme should be. Tracked in #5.
 
+#### Changed
+- ROMs opened through a file association, such as GB or SNES ROMs run by an emulator, count as
+  games: X marks them favorite, holding X marks them completed, Delete game deletes them,
+  SELECT + A can pick them, and the statistics panel counts them in the folder. Deleting one
+  keeps its save, since an emulator may name its save its own way and a `.sav` with the same
+  name may belong to a DS game; when there is a save, the confirmation says it is kept. `.gba`
+  and `.nds` games work as before. Text, pictures, video and music (`txt`, `bmp`, `png`, `jpg`,
+  `jpeg`, `gif`, `dpg`, `avi`, `mp3`, `ogg`, `wav`, `mod`, `xm`, `mid`, `nsf`) are still not
+  games. Requested in #29. The idea and the file type change come from djaysan's
+  pico-launcher-dsbios.
+
 #### Fixed
+- Homebrew whose header says it is for the DSi only, like Pokémon Chest, launches on a DS again. The
+  check added in v1.9.0 turned it away with `Needs a DSi or 3DS`, but many homebrew apps say that
+  and still run on a DS; the check now only looks at games. Reported in #30.
 - In the theme selector, a folder whose `theme.json` can't be read shows its own name, and A does
   nothing on it. The list reuses its rows as it scrolls, and such a row used to keep the theme it
   showed before, so A could apply that other theme.
+- The cover tools no longer end in an error when their output is piped or redirected on Windows
+  (fixes #13), and a cover whose write is cut short no longer stays on the card under its real
+  name, so the next run fetches it again (fixes #14).
+- `.agb` files show up and open with an `agb` file association in `settings.json`. The
+  association was looked up as `gba`, so they stayed hidden. An `agb` association now opens only
+  `.agb` files, and `.gba` files go by their own `gba` one.
 
 ### [enhanced-v1.9.0]
 

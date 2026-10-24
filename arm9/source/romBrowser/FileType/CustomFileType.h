@@ -13,10 +13,14 @@ public:
     explicit CustomFileType(const FileAssociation* fileAssociation)
         : CustomFileType(fileAssociation, nullptr) { }
 
-    CustomFileType(const FileAssociation* fileAssociation, const FileType* baseFileType)
+    /// @param classification Used only when there is no \p baseFileType, which otherwise
+    ///        decides (so .gba stays a game). Favorites, completed, delete, the random
+    ///        pick and the folder's game count all gate on Game.
+    CustomFileType(const FileAssociation* fileAssociation, const FileType* baseFileType,
+        FileTypeClassification classification = FileTypeClassification::Misc)
         : FileType(
             baseFileType != nullptr ? baseFileType->GetShortName() : fileAssociation->extension.GetString(),
-            baseFileType != nullptr ? baseFileType->GetClassification() : FileTypeClassification::Misc)
+            baseFileType != nullptr ? baseFileType->GetClassification() : classification)
         , _fileAssociation(fileAssociation), _baseFileType(baseFileType) { }
 
     std::unique_ptr<FileIcon> CreateFileIcon(const TCHAR* fileName,
@@ -39,6 +43,11 @@ public:
         return _baseFileType != nullptr
             ? _baseFileType->CreateInternalFileInfo(fastFileRef)
             : nullptr;
+    }
+
+    bool HasKnownSave() const override
+    {
+        return _baseFileType != nullptr && _baseFileType->HasKnownSave();
     }
 
     bool TrySetLaunchParameters(pload_params_t* launchParameters, const char* filePath) const override

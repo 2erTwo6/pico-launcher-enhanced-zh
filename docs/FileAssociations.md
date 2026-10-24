@@ -18,3 +18,13 @@ The file path is passed via argv.
     }
     ```
     With this setup `.xyz` files will be opened by `/path/to/xyz/app.nds` and `.gba` files will be opened by `/myGbaApp.nds`.
+
+## Files opened through a file association are games
+
+A file opened through a file association counts as a game, like a DS game:
+- **X** marks it as a favorite, and holding **X** marks it as completed.
+- **Delete game** in the menu deletes it. Its save stays: an emulator may name its save its own way, and a `.sav` with the same name may belong to a DS game in the same folder. The confirmation names that save as kept when there is one. `.gba` and `.agb` files are the exception: deleting one also deletes its `.sav`, as for a DS game.
+- **SELECT + A** can pick it as a random game.
+- It counts in the **in folder** figure of the statistics panel.
+
+These extensions are not games, in any case: `txt`, `bmp`, `png`, `jpg`, `jpeg`, `gif`, `dpg`, `avi`, `mp3`, `ogg`, `wav`, `mod`, `xm`, `mid` and `nsf`. They open as before, but can't be marked, deleted or picked, and the **in folder** figure leaves them out.

@@ -15,7 +15,8 @@ public:
     {
         const char* saveFileName = romBrowserController->GetDeleteSaveFileName();
         if (saveFileName && saveFileName[0] != 0)
-            mini_snprintf(_detailLine, sizeof(_detailLine), "存档 %s 也会被删除", saveFileName);
+            mini_snprintf(_detailLine, sizeof(_detailLine), romBrowserController->DeleteKeepsSave()
+                ? "存档 %s 会保留" : "存档 %s 也会被删除", saveFileName);
         else
             _detailLine[0] = 0;
     }

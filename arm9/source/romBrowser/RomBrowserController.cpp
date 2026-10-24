@@ -206,13 +206,17 @@ void RomBrowserController::RequestDeleteSelected()
     StringUtil::Copy(_deleteRomFileName, item.GetFileName(),
         sizeof(_deleteRomFileName) / sizeof(_deleteRomFileName[0]));
     // "<name minus extension>.sav" is the save convention used by the loader
-    // and the emulators next to their roms
+    // and by the gba emulators next to their roms
     StringUtil::Copy(_deleteSaveFileName, _deleteRomFileName,
         sizeof(_deleteSaveFileName) / sizeof(_deleteSaveFileName[0]));
     TCHAR* dot = strrchr(_deleteSaveFileName, '.');
     if (dot)
         *dot = 0;
     strlcat(_deleteSaveFileName, ".sav", sizeof(_deleteSaveFileName));
+    // An emulator run through a file association may not follow that convention, and a
+    // "<name>.sav" next to its rom may then be the save of a DS game with the same name,
+    // so deleting such a rom keeps that save. The dialog says it stays.
+    _deleteKeepsSave = !item.GetFileType()->HasKnownSave();
     // With the saves folder on, the loader looks in "saves/" first, so that is the save
     // that goes with the game when it is there. Only when the folder has none does the
     // save next to the game go, as before: with a folder save present, the one next to
@@ -225,8 +229,8 @@ void RomBrowserController::RequestDeleteSelected()
         strcpy(_deleteFolderSaveFileName, "saves/");
         strcat(_deleteFolderSaveFileName, _deleteSaveFileName);
     }
-    // Existence checks drive only the confirm dialog's wording; the actual
-    // deletion in ConfirmDelete is unconditional, so a wrong answer here
+    // Existence checks drive only the confirm dialog's wording; ConfirmDelete
+    // deletes the save without checking it is there, so a wrong answer here
     // never leaves the save behind. At worst the dialog names the save next
     // to the game while the one in the folder is what goes.
     FILINFO fileInfo;
@@ -261,9 +265,9 @@ void RomBrowserController::ConfirmDelete()
         {
             LOG_ERROR("Couldn't delete file (%d)\n", result);
         }
-        else
+        else if (!_deleteKeepsSave)
         {
-            // delete the save unconditionally: its name is derived from the
+            // delete the save without checking it is there: its name is derived from the
             // rom and f_unlink harmlessly returns FR_NO_FILE when there is
             // none. Do NOT gate on a main-thread existence check — SD access
             // from that thread is unreliable and used to skip this. The saves

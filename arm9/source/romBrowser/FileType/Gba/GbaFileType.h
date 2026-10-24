@@ -21,6 +21,8 @@ public:
         return new GbaInternalFileInfo(fastFileRef);
     }
 
+    bool HasKnownSave() const override { return true; }
+
 private:
     constexpr GbaFileType()
         : FileType("gba", FileTypeClassification::Game) { }

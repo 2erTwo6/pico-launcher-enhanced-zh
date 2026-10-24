@@ -18,6 +18,29 @@ static bool isGbaExtension(const char* extension)
         || !strcasecmp(extension, "agb");
 }
 
+// A file opened through a file association counts as a game, so the roms of any system
+// the user sets up an emulator for can be marked, deleted and randomly picked. Only these
+// are known not to be games: text, pictures, video and music. An association missing
+// here only gains buttons it does not need, while a rom left out could never be marked.
+static bool isNonGameExtension(const char* extension)
+{
+    static const char* const kNonGameExtensions[] =
+    {
+        "txt",
+        "bmp", "png", "jpg", "jpeg", "gif",
+        "dpg", "avi",
+        "mp3", "ogg", "wav", "mod", "xm", "mid", "nsf"
+    };
+    for (const char* nonGameExtension : kNonGameExtensions)
+    {
+        if (!strcasecmp(extension, nonGameExtension))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 ExtensionFileTypeProvider::ExtensionFileTypeProvider(const AppSettings& appSettings)
     : _appSettings(appSettings)
 {
@@ -29,7 +52,10 @@ ExtensionFileTypeProvider::ExtensionFileTypeProvider(const AppSettings& appSetti
         {
             baseFileType = &GbaFileType::sInstance;
         }
-        _customFileTypes[i] = CustomFileType(&appSettings.fileAssociations[i], baseFileType);
+        _customFileTypes[i] = CustomFileType(&appSettings.fileAssociations[i], baseFileType,
+            isNonGameExtension(appSettings.fileAssociations[i].extension)
+                ? FileTypeClassification::Misc
+                : FileTypeClassification::Game);
     }
 }
 
@@ -47,7 +73,8 @@ const FileType* ExtensionFileTypeProvider::GetFileType(const TCHAR* path) const
 
         for (u32 i = 0; i < _appSettings.numberOfFileAssociations; i++)
         {
-            if (!strcasecmp(extension, _customFileTypes[i].GetShortName()))
+            // the association's own extension: an agb one has the short name "gba"
+            if (!strcasecmp(extension, _appSettings.fileAssociations[i].extension))
             {
                 return &_customFileTypes[i];
             }
