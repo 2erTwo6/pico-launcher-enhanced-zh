@@ -41,7 +41,11 @@ Currently, the only settings available are the display mode, and the sorting mod
 </table>
 
 ## Settings
-Settings are stored on your SD card in `/_pico/settings.json`. They can be edited with any text editor. The following settings are available:
+Settings are stored on your SD card in `/_pico/settings.json`. They can be edited with any text editor.
+
+If you go back to the official Pico Launcher for a while, it rewrites `settings.json` with only the settings it knows, so `romBrowserHideEmptyFolders`, `saveLocation`, `launchTracking` and `backlightLevel` are back to their defaults when you return. Favorites, completed marks and play stats in `gamedata.json` are kept. If you use `"saveLocation": "saves"`, set it again before launching a game, or the game won't find its save in the `saves` folder. The official launcher doesn't know that folder either, so games started from it use the save next to the game.
+
+The following settings are available:
 - `language` - Display language for Pico Launcher. Currently, only `english` is supported. Other languages may be supported later.
 - `romBrowserLayout` - Specified how folder contents are displayed. This setting can be changed in Pico Launcher directly.
 - `romBrowserSortMode` - Specified if folder contents should be sorted from A to Z (`NameAscending`), or from Z to A (`NameDescending`). This setting can be changed from within Pico Launcher.
