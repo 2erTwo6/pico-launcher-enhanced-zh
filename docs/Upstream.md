@@ -1032,8 +1032,8 @@ New files:
 
 Commits with no feature of their own, listed so every commit is accounted for. Two of them could still go upstream on their own: the error log and the VRAM offset fix.
 
-- **Fork documentation (readme, docs pages, screenshots, contributing).** The fork's readme, its docs pages and the contributing guide. `ebddb97`, `37b5a5d`, `50acb27`, `34e04db`, `cd5ce1a`, `95bfbca`, `5557e97`, `e07bfb9`
-- **Changelog release rolls.** Release headings in the changelog, and the version bump with the last one. `d8a7744`, `0b51e82`, `7bd4a5b`, `6fd0165`, `ad218ea`
+- **Fork documentation (readme, docs pages, screenshots, contributing).** The fork's readme, its docs pages and the contributing guide. `ebddb97`, `37b5a5d`, `50acb27`, `34e04db`, `cd5ce1a`, `95bfbca`, `5557e97`, `e07bfb9`, `799148e`, `4e7a08a`
+- **Changelog release rolls.** Release headings in the changelog, and the version bump with the last one. `d8a7744`, `0b51e82`, `7bd4a5b`, `6fd0165`, `ad218ea`, `83e5c03`
 - **Error log on the SD card.** Errors go to `/_pico/launcher.log` on real hardware, so what was logged before a crash can be read afterwards; the crash itself is not recorded, and the next boot that logs an error starts the file again. `3a4ce98`
 - **Enhanced line in the cartridge banner.** The boot banner's second line says Enhanced, so tools can tell the fork from the stock launcher. `1966ccd`
 - **Icon button VRAM offset initialized.** An icon button's selector offset starts at zero instead of whatever was in memory; nothing changes on screen. From marlooonxdd ([#24](https://github.com/rasalopa/pico-launcher-enhanced/pull/24)). `47e8944`, `12e9203`

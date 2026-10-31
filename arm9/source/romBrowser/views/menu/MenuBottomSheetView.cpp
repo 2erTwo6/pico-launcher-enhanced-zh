@@ -9,6 +9,7 @@
 #include "core/math/RgbMixer.h"
 #include "themes/material/MaterialColorScheme.h"
 #include "themes/IFontRepository.h"
+#include "../MarkerColors.h"
 #include "cheatSelector.h"
 #include "recentIcon.h"
 #include "smallHeartIconFilled.h"
@@ -49,10 +50,6 @@
 
 // The recents list's highlight sprite: 64 px wide, laid end to end.
 #define SELECTOR_WIDTH      64
-
-// The red and green the app bar's heart and check used to turn.
-static const Rgb<8, 8, 8> kFavoriteRed(214, 40, 57);
-static const Rgb<8, 8, 8> kCompletedGreen(67, 160, 71);
 
 MenuItemView::MenuItemView(MenuBottomSheetView* sheet, int index, int width, const char* name,
     bool hasState, const Rgb<8, 8, 8>& activeColor,

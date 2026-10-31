@@ -19,6 +19,7 @@
 #include "themes/material/MaterialColorScheme.h"
 #include "themes/IFontRepository.h"
 #include "../Theme/IRomBrowserViewFactory.h"
+#include "MarkerColors.h"
 #include "heartMarker.h"
 #include "checkMarker.h"
 #include "starMarker.h"
@@ -30,11 +31,6 @@
 // shows is the clock running while a game was open, not time played (issue #9),
 // so it overstates. The favorite heart and completed check stay on screen.
 #define SHOW_TOP_LAUNCH_INFO_TEXT 0
-
-// Dark amber to bright gold: the star's own shading. It does not take the
-// theme's colours because it is the one marker that is a prize, not a state.
-static const Rgb<8, 8, 8> kStarOutlineColor(90, 56, 8);
-static const Rgb<8, 8, 8> kStarFillColor(255, 205, 50);
 
 // Markers are 16 px sprites with 12 px of shape inside, laid 15 apart so that
 // three of them read as one group rather than three things in a row.
@@ -292,12 +288,11 @@ void RomBrowserTopScreenView::Draw(GraphicsContext& graphicsContext)
             return _materialColorScheme->surfaceBright;
         return Rgb<8, 8, 8>(tint.r * 2 / 5, tint.g * 2 / 5, tint.b * 2 / 5);
     };
-    const Rgb<8, 8, 8> completedGreen(67, 160, 71);
     const Marker star = { _selectedStarred && !hidden, _starVramOffset, kStarOutlineColor, kStarFillColor };
     const Marker heart = { _selectedFavorite && !hidden, _heartVramOffset,
-        edgeOf(_materialColorScheme->primary), _materialColorScheme->primary };
+        edgeOf(kFavoriteRed), kFavoriteRed };
     const Marker check = { _selectedCompleted && !hidden, _checkVramOffset,
-        edgeOf(completedGreen), completedGreen };
+        edgeOf(kCompletedGreen), kCompletedGreen };
     Marker markers[3] = { star, check, heart };
     if (_launchInfoCentered)
     {

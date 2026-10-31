@@ -27,6 +27,7 @@ A feature fork of [Pico Launcher](https://github.com/LNH-team/pico-launcher) by 
 
 Everything upstream Pico Launcher offers (display modes, [custom icons, banners & covers](docs/Customization.md) for games *and folders*, [themes](docs/Themes.md), [cheats](docs/Cheats.md), [file associations](docs/FileAssociations.md); see [Usage](docs/Usage.md)), plus:
 
+- **Go back to the launcher from inside a game** (optional): with Pico Loader Enhanced, the second zip in the release, hold L + R + Right + Select for a moment in a DS game; see [Installation](#installation)
 - **A menu instead of a row of icons**: the app bar keeps back and display settings and gains a three-dot button; recently played, favorites, statistics, deletion and the two filters live in the sheet it opens, each with its name
 - **About sheet**: from the menu's title row: who made what, the exact build and the repository it came from, and a cheat sheet of the controls that have no button
 - **Jump by initial**: press L or R to jump to the next initial letter in a folder sorted by name; the letter you land on shows for a moment at the bottom of the touch screen
@@ -68,15 +69,19 @@ v2 with the font embedding exception, see
 
 ## Installation
 
-1. Download `LAUNCHER.nds` from the [Releases](../../releases) page.
-2. Rename it to `_picoboot.nds` and place it in the root of your SD card, replacing the existing one.
+1. Download `Pico_Launcher_Enhanced.zip` from the [latest release](../../releases/latest).
+2. Take `LAUNCHER.nds` out of it, rename it to `_picoboot.nds` and place it in the root of your SD card, replacing the existing one.
 
 No other changes to your SD card are needed: themes, covers and the `_pico` folder from a stock setup keep working as-is.
 
 > [!NOTE]
-> To use Pico Launcher, the Pico Loader files (`aplist.bin`, `savelist.bin`, `picoLoader7.bin` and `picoLoader9.bin`) must also be present in the `/_pico` folder on your SD card.
+> To use Pico Launcher, the Pico Loader files (`aplist.bin`, `patchlist.bin`, `savelist.bin`, `picoLoader7.bin` and `picoLoader9.bin`) must also be present in the `/_pico` folder on your SD card.
 
-## Setup & Configuration
+### Optional: the in-game exit
+
+The release also has a second zip, Pico Loader Enhanced: a version of Pico Loader that lets you go back to the launcher from inside a DS game by holding L + R + Right + Select for a moment. To use it, copy its `picoLoader7.bin` and `picoLoader9.bin` into `/_pico/`, over the official ones. It is optional, the launcher works the same with the official loader. Which games get the exit, and the known issues, are in the [release notes](../../releases/latest).
+
+## Building from source
 We recommend using WSL (Windows Subsystem for Linux), or MSYS2 to compile this repository.
 The steps provided will assume you already have one of those environments set up.
 

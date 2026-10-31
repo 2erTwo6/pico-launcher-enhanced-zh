@@ -7,6 +7,7 @@
 #include "gui/GraphicsContext.h"
 #include "gui/OamBuilder.h"
 #include "gui/input/InputProvider.h"
+#include "../MarkerColors.h"
 #include "RecentListItemView.h"
 
 #define HEART_X            4
@@ -133,7 +134,7 @@ void RecentListItemView::Draw(GraphicsContext& graphicsContext)
         graphicsContext.IsVisible(Rectangle(_position.x + HEART_X, _position.y + HEART_Y, 16, 16)))
     {
         u32 iconPaletteRow = graphicsContext.GetPaletteManager().AllocRow(
-            GradientPalette(backColor, _materialColorScheme->primary),
+            GradientPalette(backColor, kFavoriteRed),
             _position.y + HEART_Y, _position.y + HEART_Y + 16);
         auto iconOam = graphicsContext.GetOamManager().AllocOams(1);
         OamBuilder::OamWithSize<16, 16>(_position.x + HEART_X, _position.y + HEART_Y, _vramOffsets.heartIconVramOffset >> 7)

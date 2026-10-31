@@ -27,6 +27,7 @@
 
 原版 Pico Launcher 的所有功能都在（显示模式、游戏*和文件夹*的[自定义图标、横幅与封面](docs/Customization.md)、[主题](docs/Themes.md)、[金手指](docs/Cheats.md)、[文件关联](docs/FileAssociations.md) —— 详见[使用说明](docs/Usage.md)），此外还加入了：
 
+- **从游戏内返回启动器**（可选）—— 配合发布包中的第二个压缩包 Pico Loader Enhanced，在 DS 游戏中按住 L + R + 右 + SELECT 片刻即可返回启动器；详见[安装](#安装)章节
 - **用菜单代替一排图标** —— 应用栏保留返回和显示设置，并新增三点按钮；最近游玩、收藏、统计、删除游戏和两个筛选都放在它打开的菜单中，每项都有文字说明
 - **关于面板** —— 从菜单标题栏进入：谁做了什么、确切的构建版本及其来源仓库，以及没有独立按键的操作速查表
 - **按首字母跳转** —— 在按名称排序的文件夹中，按 L 或 R 跳到下一个首字母；落到的字母会在下屏底部短暂显示
@@ -61,15 +62,19 @@
 
 ## 安装
 
-1. 从[发布页面](../../releases)下载 `LAUNCHER.nds`。
-2. 将其重命名为 `_picoboot.nds`，放到 SD 卡根目录，覆盖原文件。
+1. 从[最新发布](../../releases/latest)下载 `Pico_Launcher_Enhanced.zip`。
+2. 从压缩包中取出 `LAUNCHER.nds`，重命名为 `_picoboot.nds`，放到 SD 卡根目录，覆盖原文件。
 
 不需要对 SD 卡做其他改动——原版安装中的主题、封面和 `_pico` 文件夹都可以继续使用。
 
 > [!NOTE]
-> 使用 Pico Launcher 时，SD 卡的 `/_pico` 目录中还需要有 Pico Loader 文件（`aplist.bin`、`savelist.bin`、`picoLoader7.bin` 和 `picoLoader9.bin`）。
+> 使用 Pico Launcher 时，SD 卡的 `/_pico` 目录中还需要有 Pico Loader 文件（`aplist.bin`、`patchlist.bin`、`savelist.bin`、`picoLoader7.bin` 和 `picoLoader9.bin`）。
 
-## 环境准备
+### 可选：游戏内退出
+
+发布包中还有第二个压缩包 Pico Loader Enhanced：这是 Pico Loader 的一个版本，可以在 DS 游戏中按住 L + R + 右 + SELECT 片刻，直接从游戏返回启动器。要使用它，把它里面的 `picoLoader7.bin` 和 `picoLoader9.bin` 复制到 `/_pico/`，覆盖官方版本即可。这是可选功能，继续使用官方加载器时启动器行为完全不变。哪些游戏支持该功能、有哪些已知问题，见[发布说明](../../releases/latest)。
+
+## 从源码构建
 
 推荐使用 WSL（Windows Subsystem for Linux）或 MSYS2 来编译本项目。以下步骤假设你已经配置好其中一种环境。
 

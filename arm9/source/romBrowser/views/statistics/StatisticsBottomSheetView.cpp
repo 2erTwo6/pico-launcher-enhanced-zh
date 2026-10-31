@@ -10,6 +10,7 @@
 #include "themes/IFontRepository.h"
 #include "gui/input/InputProvider.h"
 #include "gui/FocusManager.h"
+#include "../MarkerColors.h"
 #include "folderIcon.h"
 #include "gamesIcon.h"
 #include "smallHeartIconFilled.h"
@@ -265,8 +266,6 @@ void StatisticsBottomSheetView::Draw(GraphicsContext& graphicsContext)
         const auto& bright = _materialColorScheme->onSurface;
         const auto& body = _materialColorScheme->onSurfaceVariant;
         const auto& faint = _materialColorScheme->outline;
-        // The same green the top screen gives its completed check.
-        const Rgb<8, 8, 8> completedGreen(67, 160, 71);
 
         auto paint = [&](const SharedPtr<Label2DView>& label, const Rgb<8, 8, 8>& color)
         {
@@ -280,7 +279,8 @@ void StatisticsBottomSheetView::Draw(GraphicsContext& graphicsContext)
         paint(_titleLabel, bright);
         paint(_versionLabel, faint);
 
-        const Rgb<8, 8, 8> tints[TILE_COUNT] = { body, body, _materialColorScheme->primary, completedGreen };
+        // the heart and the check in the top screen's red and green
+        const Rgb<8, 8, 8> tints[TILE_COUNT] = { body, body, kFavoriteRed, kCompletedGreen };
         for (u32 i = 0; i < TILE_COUNT; i++)
         {
             paint(_tileNumbers[i], bright);

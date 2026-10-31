@@ -9,6 +9,19 @@
   text, drawn with a WenQuanYi Bitmap Song dot-matrix font. The old proportional
   Japanese font files are replaced by a single 9pt bitmap `.nft2` font in `arm9/data`.
 
+#### Changed
+- The favorite heart, the completed check and the top screen's star keep their red,
+  green and gold on every theme. Before this, the heart took the theme's primary color
+  on the top screen, in the favorites list and in statistics (upstream `d8f80d9`).
+- Installation names `Pico_Launcher_Enhanced.zip`, lists `patchlist.bin` with the other
+  loader files, and describes the optional in-game exit through Pico Loader Enhanced
+  (hold L + R + Right + Select in a DS game); the readme's setup section is now called
+  "Building from source" (upstream `4e7a08a`).
+- `docs/Usage.md` warns that running the official Pico Launcher rewrites `settings.json`
+  with only the keys it knows, resetting `romBrowserHideEmptyFolders`, `saveLocation`,
+  `launchTracking` and `backlightLevel`, while `gamedata.json` is kept (upstream `f58f427`).
+  It also describes the Chinese-only interface instead of saying only `english` is supported.
+
 ### [enhanced-v1.10.0]
 
 #### Added
