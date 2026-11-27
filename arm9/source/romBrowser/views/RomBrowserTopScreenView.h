@@ -1,16 +1,15 @@
 #pragma once
 #include "core/SharedPtr.h"
 #include "core/String.h"
+#include "fat/ff.h"
 #include "gui/views/ViewContainer.h"
 #include "BannerView.h"
 #include "gui/views/LabelView.h"
-#include "gui/views/Label2DView.h"
 #include "../FileType/FileIcon.h"
 #include "../DisplayMode/RomBrowserDisplayMode.h"
 
 class RomBrowserViewModel;
 class IRomBrowserViewFactory;
-class IFontRepository;
 class IGameDataService;
 struct MaterialColorScheme;
 
@@ -40,7 +39,6 @@ private:
     SharedPtr<RomBrowserViewModel> _viewModel;
     const IThemeFileIconFactory* _themeFileIconFactory;
     SharedPtr<BannerView> _fileInfoView;
-    SharedPtr<Label2DView> _launchInfoLabel;
     IGameDataService* _gameDataService;
     std::unique_ptr<FileIcon> _selectedFileIcon;
     SharedPtr<FileCover> _selectedFileCover;
@@ -61,7 +59,7 @@ private:
     bool _launchInfoCentered = false;
     bool _launchInfoBare = false;
     // The most launched game's file name, refreshed when the game data changes.
-    String<char, 96> _mostPlayedFileName;
+    String<char, FF_LFN_BUF> _mostPlayedFileName;
     u32 _mostPlayedVersion = 0;
     bool _mostPlayedKnown = false;
     int _lastGameDataItem = -1;
@@ -72,7 +70,6 @@ private:
         const RomBrowserDisplayMode* displayMode,
         const IThemeFileIconFactory* themeFileIconFactory,
         const IRomBrowserViewFactory* romBrowserViewFactory,
-        const IFontRepository* fontRepository,
         const MaterialColorScheme* materialColorScheme);
 
     void DrawChip(GraphicsContext& graphicsContext, int x, int y, int width, u32 paletteRow);

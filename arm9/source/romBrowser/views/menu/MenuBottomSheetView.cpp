@@ -1,5 +1,7 @@
 #include "common.h"
 #include <algorithm>
+#include <iterator>
+#include "core/mini-printf.h"
 #include "gui/GraphicsContext.h"
 #include "gui/VramContext.h"
 #include "gui/OamBuilder.h"
@@ -15,6 +17,8 @@
 #include "smallHeartIconFilled.h"
 #include "statsIcon.h"
 #include "trashIcon.h"
+#include "plusIcon.h"
+#include "languageIcon.h"
 #include "heartIcon.h"
 #include "checkIcon.h"
 #include "infoIcon.h"
@@ -29,53 +33,95 @@
 #define ABOUT_BUTTON_X      212
 #define ABOUT_BUTTON_Y      (TITLE_Y - 7)
 
-// Two cells per row over the 224 px the recents list uses, then two full rows.
-// Rows sit 26 apart so the 24 px items keep a hairline between them; the last
-// one ends at 142, screen y 174, with the sheet's rounded edge below it.
+// Two cells per row over the 224 px the recents list uses. Rows sit 26 apart
+// so the 24 px items keep a hairline between them; the fourth ends at 142,
+// screen y 174, with the sheet's rounded edge below it. A fifth would end past
+// the screen, so every row holds two entries.
 #define ITEMS_X             16
 #define CELL_WIDTH          112
-#define ROW_WIDTH           224
 #define ROWS_Y              40
 #define ROW_SPACING         26
 
-// Inside an item.
+// Inside an item. "Japanese", the longest state, takes all 34 px and leaves the
+// name 48, of which "Language" takes 47.
 #define ICON_DX             4
 #define ICON_DY             4
 #define ICON_SIZE           16
 #define NAME_DX             26
 #define NAME_DY             4
-#define STATE_WIDTH         40
-#define STATE_DX            (ROW_WIDTH - 4 - STATE_WIDTH)
+#define STATE_WIDTH         34
 #define STATE_DY            7
+
+// In the save picker's entries, which have no icon: "16/11" takes 19 of the 24 px,
+// leaving the name 76, about 14 characters.
+#define SAVE_PICKER_NAME_DX 8
+#define DATE_WIDTH          24
 
 // The recents list's highlight sprite: 64 px wide, laid end to end.
 #define SELECTOR_WIDTH      64
 
-MenuItemView::MenuItemView(MenuBottomSheetView* sheet, int index, int width, const char* name,
-    bool hasState, const Rgb<8, 8, 8>& activeColor,
-    const MaterialColorScheme* materialColorScheme, const IFontRepository* fontRepository)
-    : _sheet(sheet), _index(index), _width(width), _activeColor(activeColor)
-    , _materialColorScheme(materialColorScheme)
+namespace
 {
-    int nameWidth = width - NAME_DX - 4 - (hasState ? STATE_WIDTH : 0);
+    struct MenuEntry
+    {
+        const char* name;
+        int row;
+        int column;
+    };
+}
+
+// In the order of MenuBottomSheetView::Item.
+static constexpr MenuEntry kEntries[] =
+{
+    { "最近游玩", 0, 0 },
+    { "收藏", 0, 1 },
+    { "统计", 1, 0 },
+    { "删除游戏", 1, 1 },
+    { "新建存档", 2, 0 },
+    { "语言", 2, 1 },
+    { "仅收藏", 3, 0 },
+    { "仅通关", 3, 1 }
+};
+
+// By PicoLoaderGameLanguage, from Japanese to Korean. Two characters each: the
+// 34 px the state has at the end of a 112 px cell holds no more than that.
+static constexpr const char* kGameLanguageNames[] =
+    { "日语", "英语", "法语", "德语", "意语", "西语", "中文", "韩语" };
+
+static const char* GetGameLanguageName(PicoLoaderGameLanguage gameLanguage)
+{
+    return gameLanguage == PLOAD_GAME_LANGUAGE_AUTO ? "主机" : kGameLanguageNames[gameLanguage];
+}
+
+MenuItemView::MenuItemView(IMenuItemHost* sheet, int index, int width, const char* name,
+    const char* stateText, const Rgb<8, 8, 8>& activeColor,
+    const MaterialColorScheme* materialColorScheme, const IFontRepository* fontRepository, Layout layout)
+    : _sheet(sheet), _index(index), _width(width)
+    , _nameX(layout == Layout::SavePicker ? SAVE_PICKER_NAME_DX : NAME_DX)
+    , _stateWidth(layout == Layout::SavePicker ? DATE_WIDTH : STATE_WIDTH)
+    , _activeColor(activeColor), _materialColorScheme(materialColorScheme)
+{
+    int nameWidth = width - _nameX - 4 - (stateText ? _stateWidth : 0);
+    // 24 holds a save's name, which is up to 20 characters
     _nameLabel = Label2DView::CreateShared(nameWidth, 16, 24, fontRepository->GetFont(FontType::Regular10));
     _nameLabel->SetEllipsisStyle(LabelView::EllipsisStyle::Ellipsis);
     _nameLabel->SetText(name);
     AddChildTail(_nameLabel.GetPointer());
-    if (hasState)
+    if (stateText)
     {
-        _stateLabel = Label2DView::CreateShared(STATE_WIDTH, 16, 4, fontRepository->GetFont(FontType::Medium7_5));
+        // "Japanese" is the longest
+        _stateLabel = Label2DView::CreateShared(_stateWidth, 16, 8, fontRepository->GetFont(FontType::Medium7_5));
         _stateLabel->SetHorizontalAlignment(Alignment::End);
-        _stateLabel->SetText("关");
+        _stateLabel->SetText(stateText);
         AddChildTail(_stateLabel.GetPointer());
     }
 }
 
 void MenuItemView::Update()
 {
-    _nameLabel->SetPosition(_position.x + NAME_DX, _position.y + NAME_DY);
+    _nameLabel->SetPosition(_position.x + _nameX, _position.y + NAME_DY);
     if (_stateLabel)
-        _stateLabel->SetPosition(_position.x + STATE_DX, _position.y + STATE_DY);
+        _stateLabel->SetPosition(_position.x + _width - 4 - _stateWidth, _position.y + STATE_DY);
     ViewContainer::Update();
 }
 
@@ -123,10 +169,13 @@ void MenuItemView::Draw(GraphicsContext& graphicsContext)
     if (_stateLabel)
     {
         _stateLabel->SetBackgroundColor(back);
-        _stateLabel->SetForegroundColor(_active ? _activeColor : _materialColorScheme->outline);
+        _stateLabel->SetForegroundColor(_enabled ? _materialColorScheme->onSurfaceVariant
+            : _materialColorScheme->outline);
     }
     ViewContainer::Draw(graphicsContext);
 
+    if (!_hasIcon)
+        return;
     int iconY = _position.y + ICON_DY;
     u32 iconRow = graphicsContext.GetPaletteManager().AllocRow(
         GradientPalette(back, tint), iconY, iconY + ICON_SIZE);
@@ -192,22 +241,24 @@ MenuBottomSheetView::MenuBottomSheetView(SharedPtr<MenuViewModel> viewModel,
     }, this);
     AddChildTail(_aboutButton.GetPointer());
 
-    static const struct { const char* name; bool filter; } kEntries[ITEM_COUNT] =
-    {
-        { "最近游玩", false },
-        { "收藏", false },
-        { "统计", false },
-        { "删除游戏", false },
-        { "仅收藏", true },
-        { "仅通关", true }
-    };
+    static_assert(std::size(kEntries) == ITEM_COUNT, "one entry per item");
+    // the highlighted game can't change while the menu is open
+    _isDsGame = _viewModel->IsDsGame();
+    u32 newSaveSlot = _viewModel->GetNewSaveSlot();
+    char newSaveText[16];
+    mini_snprintf(newSaveText, sizeof(newSaveText), "存档 %u", newSaveSlot);
     for (int i = 0; i < ITEM_COUNT; i++)
     {
-        _items[i] = MenuItemView::CreateShared(this, i, kEntries[i].filter ? ROW_WIDTH : CELL_WIDTH,
-            kEntries[i].name, kEntries[i].filter, i == ITEM_COMPLETED_FILTER ? kCompletedGreen : kFavoriteRed,
+        const char* stateText = i == ITEM_NEW_SAVE && newSaveSlot != 0 ? newSaveText
+            : i == ITEM_LANGUAGE ? GetGameLanguageName(_viewModel->GetGameLanguage()) : nullptr;
+        _items[i] = MenuItemView::CreateShared(this, i, CELL_WIDTH,
+            kEntries[i].name, stateText, i == ITEM_COMPLETED_FILTER ? kCompletedGreen : kFavoriteRed,
             materialColorScheme, fontRepository);
-        AddChildTail(_items[i].GetPointer());
+        if (IsShown(i))
+            AddChildTail(_items[i].GetPointer());
     }
+    _items[ITEM_NEW_SAVE]->SetEnabled(newSaveSlot != 0);
+    _items[ITEM_LANGUAGE]->SetEnabled(_viewModel->CanPickGameLanguage());
 }
 
 void MenuBottomSheetView::InitVram(const VramContext& vramContext)
@@ -218,9 +269,11 @@ void MenuBottomSheetView::InitVram(const VramContext& vramContext)
     if (!objVramManager)
         return;
     static const unsigned int* const kTiles[ITEM_COUNT] =
-        { recentIconTiles, smallHeartIconFilledTiles, statsIconTiles, trashIconTiles, heartIconTiles, checkIconTiles };
+        { recentIconTiles, smallHeartIconFilledTiles, statsIconTiles, trashIconTiles, plusIconTiles,
+          languageIconTiles, heartIconTiles, checkIconTiles };
     static const u32 kTilesLength[ITEM_COUNT] =
-        { recentIconTilesLen, smallHeartIconFilledTilesLen, statsIconTilesLen, trashIconTilesLen, heartIconTilesLen, checkIconTilesLen };
+        { recentIconTilesLen, smallHeartIconFilledTilesLen, statsIconTilesLen, trashIconTilesLen, plusIconTilesLen,
+          languageIconTilesLen, heartIconTilesLen, checkIconTilesLen };
     _aboutButton->SetIconVramOffset(LoadSprite(*objVramManager, infoIconTiles, infoIconTilesLen));
     u32 selectorVramOffset = LoadSprite(*objVramManager, cheatSelectorTiles, cheatSelectorTilesLen);
     for (int i = 0; i < ITEM_COUNT; i++)
@@ -237,6 +290,27 @@ u32 MenuBottomSheetView::LoadSprite(IVramManager& vramManager, const unsigned in
     return vramOffset;
 }
 
+bool MenuBottomSheetView::IsShown(int index) const
+{
+    return _isDsGame || kEntries[index].row != kEntries[ITEM_NEW_SAVE].row;
+}
+
+int MenuBottomSheetView::GetRow(int index) const
+{
+    int row = kEntries[index].row;
+    return !_isDsGame && row > kEntries[ITEM_NEW_SAVE].row ? row - 1 : row;
+}
+
+int MenuBottomSheetView::FindEntry(int row, int column) const
+{
+    for (int i = 0; i < ITEM_COUNT; i++)
+    {
+        if (IsShown(i) && GetRow(i) == row && kEntries[i].column == column)
+            return i;
+    }
+    return -1;
+}
+
 void MenuBottomSheetView::Update()
 {
     int y = _position.y;
@@ -244,11 +318,8 @@ void MenuBottomSheetView::Update()
     _aboutButton->SetPosition(ABOUT_BUTTON_X, y + ABOUT_BUTTON_Y);
     for (int i = 0; i < ITEM_COUNT; i++)
     {
-        // two rows of two cells, then the filters as the third and fourth row
-        bool cell = i < ITEM_FAVORITES_FILTER;
-        int row = cell ? i / 2 : i - 2;
-        int x = ITEMS_X + (cell ? (i % 2) * CELL_WIDTH : 0);
-        _items[i]->SetPosition(x, y + ROWS_Y + row * ROW_SPACING);
+        int x = ITEMS_X + kEntries[i].column * CELL_WIDTH;
+        _items[i]->SetPosition(x, y + ROWS_Y + GetRow(i) * ROW_SPACING);
     }
     _items[ITEM_DELETE]->SetEnabled(_viewModel->CanDeleteSelected());
     _items[ITEM_FAVORITES_FILTER]->SetActive(_viewModel->IsFavoritesFilterEnabled());
@@ -297,36 +368,25 @@ SharedPtr<View> MenuBottomSheetView::MoveFocus(const SharedPtr<View>& currentFoc
     if (idx < 0)
         return nullptr;
 
-    // 0 1 and 2 3 are the two-by-two grid, 4 and 5 the full rows under it.
-    bool cell = idx < ITEM_FAVORITES_FILTER;
+    int row = GetRow(idx);
+    int column = kEntries[idx].column;
+    int target = -1;
     switch (direction)
     {
         case FocusMoveDirection::Left:
-            if (cell && (idx % 2) == 1)
-                return _items[idx - 1];
-            break;
         case FocusMoveDirection::Right:
-            if (cell && (idx % 2) == 0)
-                return _items[idx + 1];
+            target = FindEntry(row, direction == FocusMoveDirection::Left ? 0 : 1);
             break;
         case FocusMoveDirection::Up:
-            if (idx == ITEM_COMPLETED_FILTER)
-                return _items[ITEM_FAVORITES_FILTER];
-            if (idx == ITEM_FAVORITES_FILTER)
-                return _items[ITEM_STATISTICS];
-            if (idx >= 2)
-                return _items[idx - 2];
-            return _aboutButton;
+            if (row == 0)
+                return _aboutButton;
+            target = FindEntry(row - 1, column);
+            break;
         case FocusMoveDirection::Down:
-            if (idx == ITEM_FAVORITES_FILTER)
-                return _items[ITEM_COMPLETED_FILTER];
-            if (idx < 2)
-                return _items[idx + 2];
-            if (cell)
-                return _items[ITEM_FAVORITES_FILTER];
+            target = FindEntry(row + 1, column);
             break;
     }
-    return nullptr;
+    return target >= 0 && target != idx ? _items[target] : nullptr;
 }
 
 void MenuBottomSheetView::SetGraphics(const IconButton2DView::VramToken& iconButtonVramToken)
@@ -355,6 +415,15 @@ void MenuBottomSheetView::Activate(int index)
         case ITEM_DELETE:
             // faded on a folder and inert with it: the controller checks too
             _viewModel->RequestDeleteSelected();
+            break;
+        case ITEM_NEW_SAVE:
+            // faded and inert without a free save: the view model checks
+            _viewModel->StartNewSave();
+            break;
+        case ITEM_LANGUAGE:
+            // faded and inert while there is no language to pick: the view model checks
+            _viewModel->PickNextGameLanguage();
+            _items[ITEM_LANGUAGE]->SetStateText(GetGameLanguageName(_viewModel->GetGameLanguage()));
             break;
         case ITEM_FAVORITES_FILTER:
             _viewModel->ToggleFavoritesFilter();

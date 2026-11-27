@@ -44,20 +44,41 @@ public:
     virtual void RecordLaunch(const char* fileName, const char* gameCode,
         const char* fullPath, const char* lastPlayedDateTime) = 0;
 
+    /// @brief Stores the save slot picked for the given rom file, by file name
+    ///        like the marks. Slot 0 is the regular save, so picking it for a
+    ///        game without an entry creates none, and an entry left holding only
+    ///        defaults is pruned on the next write as usual. Slots above
+    ///        kMaxSaveSlot are ignored, and so are file names too long to
+    ///        store. Returns true when it wrote (the caller should then save).
+    virtual bool SetSaveSlot(const char* fileName, u32 saveSlot, const char* gameCode = nullptr) = 0;
+
+    /// @brief The name and last start of one of the game's saves, or nullptr when
+    ///        none of its saves has either. Valid until the next mutation.
+    virtual const GameSaveInfo* GetSaveInfo(const char* fileName, u32 saveSlot) const = 0;
+
+    /// @brief Notes the save a game is starting on. Call it before SetSaveSlot and
+    ///        RecordLaunch: the first time a game's saves get dates, the save of the
+    ///        last launch takes the game's lastPlayed. A new save drops the name and
+    ///        date of the deleted save that had its slot. \p lastPlayedDateTime is
+    ///        nullptr when launches are not tracked, and then no date is written.
+    ///        Returns true when it wrote (the caller should then save).
+    virtual bool RecordSaveLaunch(const char* fileName, u32 saveSlot, bool newSave,
+        const char* lastPlayedDateTime, const char* gameCode = nullptr) = 0;
+
+    /// @brief Stores the language picked for the given rom file, by file name like
+    ///        the save slot. PLOAD_GAME_LANGUAGE_AUTO, the console's, creates no
+    ///        entry. Returns true when it wrote (the caller should then save).
+    virtual bool SetGameLanguage(const char* fileName, PicoLoaderGameLanguage gameLanguage,
+        const char* gameCode = nullptr) = 0;
+
     /// @brief Drops the entry for a deleted rom file. By file name, matching how
     ///        marks are stored.
     virtual void RemoveEntry(const char* fileName) = 0;
 
-    /// @brief Credits the session opened by the last RecordLaunch with the
-    ///        time elapsed until now (the next launcher boot). Sessions over
-    ///        6 hours are discarded: that is a power-off, not a play session.
-    /// @return True when play time was credited (the caller should save).
-    virtual bool CloseOpenSession(const char* nowDateTime) = 0;
-
-    /// @brief Forgets the session opened by the last RecordLaunch without
-    ///        crediting it, for when launch tracking was switched off since.
-    /// @return True when there was a session to forget (the caller should save).
-    virtual bool DiscardOpenSession() = 0;
+    /// @brief Closes the session opened by the last RecordLaunch and credits its
+    ///        game with \p playSeconds, which is 0 after a power-off.
+    /// @return True when there was a session to close (the caller should save).
+    virtual bool CloseOpenSession(u32 playSeconds) = 0;
 
     /// @brief Unordered access to all entries, for building derived lists
     ///        (e.g. recents). Indices are only valid until the next mutation.
@@ -74,10 +95,9 @@ public:
     ///        then destroy data this run never saw.
     virtual void SaveAsync(TaskQueueBase* ioTaskQueue) = 0;
 
-    /// @brief The longest rom file name that can be stored. Longer names are
-    ///        refused outright rather than silently truncated into a key that
-    ///        collides with a same-prefixed file.
-    static constexpr u32 kMaxFileNameLength = 96;
+    /// @brief The highest save slot. One digit after .sav, so the save names
+    ///        stay .sav1 to .sav9.
+    static constexpr u32 kMaxSaveSlot = 9;
 };
 
 inline IGameDataService::~IGameDataService() { }

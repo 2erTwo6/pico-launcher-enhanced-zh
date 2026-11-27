@@ -7,7 +7,6 @@
 #include <libtwl/gfx/gfxPalette.h>
 #include <libtwl/gfx/gfxWindow.h>
 #include <libtwl/dma/dmaNitro.h>
-#include "core/mini-printf.h"
 #include "../viewModels/RomBrowserViewModel.h"
 #include "../IRomBrowserController.h"
 #include "services/gamedata/IGameDataService.h"
@@ -17,7 +16,6 @@
 #include "gui/OamBuilder.h"
 #include "gui/palette/GradientPalette.h"
 #include "themes/material/MaterialColorScheme.h"
-#include "themes/IFontRepository.h"
 #include "../Theme/IRomBrowserViewFactory.h"
 #include "MarkerColors.h"
 #include "heartMarker.h"
@@ -25,12 +23,6 @@
 #include "starMarker.h"
 #include "stripChipBg.h"
 #include "RomBrowserTopScreenView.h"
-
-// The launch info text next to the markers - "3x 1h20", "3x · 16 Jul" - is
-// switched off for now, and kept behind this rather than removed: the time it
-// shows is the clock running while a game was open, not time played (issue #9),
-// so it overstates. The favorite heart and completed check stay on screen.
-#define SHOW_TOP_LAUNCH_INFO_TEXT 0
 
 // Markers are 16 px sprites with 12 px of shape inside, laid 15 apart so that
 // three of them read as one group rather than three things in a row.
@@ -41,7 +33,6 @@ RomBrowserTopScreenView::RomBrowserTopScreenView(
     const RomBrowserDisplayMode* displayMode,
     const IThemeFileIconFactory* themeFileIconFactory,
     const IRomBrowserViewFactory* romBrowserViewFactory,
-    const IFontRepository* fontRepository,
     const MaterialColorScheme* materialColorScheme)
     : _viewModel(std::move(viewModel))
     , _themeFileIconFactory(themeFileIconFactory)
@@ -65,18 +56,6 @@ RomBrowserTopScreenView::RomBrowserTopScreenView(
 
     _gameDataService = _viewModel->GetRomBrowserController()->GetGameDataService();
     _materialColorScheme = materialColorScheme;
-    // launch info for the selected game ("3x 16/07"), packed right to left in
-    // the top strip with the completed check + favorite heart; Draw() positions
-    // it so the cluster's chip is sized to its content
-    _launchInfoLabel = Label2DView::CreateShared(96, 16, 15, fontRepository->GetFont(FontType::Medium10));
-    _launchInfoLabel->SetHorizontalAlignment(Alignment::End);
-    _launchInfoLabel->SetPosition(_launchInfoPosition.x - 96, _launchInfoPosition.y + 2);
-    _launchInfoLabel->SetBackgroundColor(materialColorScheme->surfaceBright);
-    _launchInfoLabel->SetForegroundColor(materialColorScheme->onSurfaceVariant);
-#if SHOW_TOP_LAUNCH_INFO_TEXT
-    if (!_launchInfoHidden)
-        AddChildTail(_launchInfoLabel.GetPointer());
-#endif
 }
 
 void RomBrowserTopScreenView::InitVram(const VramContext& vramContext)
@@ -172,8 +151,6 @@ void RomBrowserTopScreenView::Update()
         _selectedFavorite = false;
         _selectedCompleted = false;
         _selectedStarred = false;
-        char info[48];
-        info[0] = 0;
         if (selectedItem >= 0)
         {
             const auto& item = _viewModel->GetFileInfoManager().GetItem(selectedItem);
@@ -189,42 +166,8 @@ void RomBrowserTopScreenView::Update()
                 _selectedCompleted = entry->completed;
                 _selectedStarred = _mostPlayedFileName.GetString()[0] != 0 &&
                     strcmp(entry->fileName.GetString(), _mostPlayedFileName.GetString()) == 0;
-                if (entry->launchCount > 0)
-                {
-                    if (entry->playMinutes >= 60)
-                    {
-                        mini_snprintf(info, sizeof(info), "%u次 %u时%02u分", entry->launchCount,
-                            entry->playMinutes / 60, entry->playMinutes % 60);
-                    }
-                    else if (entry->playMinutes > 0)
-                    {
-                        mini_snprintf(info, sizeof(info), "%u次 %u分", entry->launchCount,
-                            entry->playMinutes);
-                    }
-                    else if (strlen(entry->lastPlayed.GetString()) >= 10)
-                    {
-                        // stored as "YYYY-MM-DD HH:MM", shown as "3次 · 7月16日"
-                        const char* lastPlayed = entry->lastPlayed.GetString();
-                        u32 month = (lastPlayed[5] - '0') * 10 + (lastPlayed[6] - '0');
-                        u32 day = (lastPlayed[8] - '0') * 10 + (lastPlayed[9] - '0');
-                        if (month >= 1 && month <= 12 && day >= 1 && day <= 31)
-                        {
-                            mini_snprintf(info, sizeof(info), "%u次 · %u月%u日", entry->launchCount,
-                                month, day);
-                        }
-                        else
-                        {
-                            mini_snprintf(info, sizeof(info), "%u次", entry->launchCount);
-                        }
-                    }
-                    else
-                    {
-                        mini_snprintf(info, sizeof(info), "%u次", entry->launchCount);
-                    }
-                }
             }
         }
-        _launchInfoLabel->SetText(info);
         _lastGameDataItem = selectedItem;
         _lastGameDataVersion = gameDataVersion;
     }
@@ -234,7 +177,7 @@ void RomBrowserTopScreenView::Update()
 // The star goes to the game launched most, by the same comparator that orders
 // the statistics panel's list (LaunchedMoreThan), so the two never disagree:
 // ties go to the name that sorts first, not to whichever was stored first. Play
-// time is not consulted: it counts the clock, not the game (issue #9).
+// time is not consulted: only games left with the in-game exit have any.
 void RomBrowserTopScreenView::RefreshMostPlayed(u32 gameDataVersion)
 {
     _mostPlayedFileName = "";
@@ -256,16 +199,6 @@ void RomBrowserTopScreenView::RefreshMostPlayed(u32 gameDataVersion)
 
 void RomBrowserTopScreenView::Draw(GraphicsContext& graphicsContext)
 {
-    // a hidden launch info suppresses its text and all three markers together
-    bool hidden = _launchInfoHidden;
-#if SHOW_TOP_LAUNCH_INFO_TEXT
-    // the width follows the currently displayed string (updated at vblank), so
-    // the chip always matches the text on screen
-    u32 launchInfoWidth = hidden ? 0 : _launchInfoLabel->GetStringWidth();
-#else
-    u32 launchInfoWidth = 0;
-#endif
-
     // The markers in the order they are laid out, left to right. Centred over
     // the icon they go star, heart, check, as the card was mocked up; a pill
     // keeps the order it always had, check then heart, and gets the star at
@@ -288,10 +221,10 @@ void RomBrowserTopScreenView::Draw(GraphicsContext& graphicsContext)
             return _materialColorScheme->surfaceBright;
         return Rgb<8, 8, 8>(tint.r * 2 / 5, tint.g * 2 / 5, tint.b * 2 / 5);
     };
-    const Marker star = { _selectedStarred && !hidden, _starVramOffset, kStarOutlineColor, kStarFillColor };
-    const Marker heart = { _selectedFavorite && !hidden, _heartVramOffset,
+    const Marker star = { _selectedStarred && !_launchInfoHidden, _starVramOffset, kStarOutlineColor, kStarFillColor };
+    const Marker heart = { _selectedFavorite && !_launchInfoHidden, _heartVramOffset,
         edgeOf(kFavoriteRed), kFavoriteRed };
-    const Marker check = { _selectedCompleted && !hidden, _checkVramOffset,
+    const Marker check = { _selectedCompleted && !_launchInfoHidden, _checkVramOffset,
         edgeOf(kCompletedGreen), kCompletedGreen };
     Marker markers[3] = { star, check, heart };
     if (_launchInfoCentered)
@@ -304,10 +237,7 @@ void RomBrowserTopScreenView::Draw(GraphicsContext& graphicsContext)
     for (const auto& marker : markers)
         if (marker.show)
             markerCount++;
-    // the text, a 2 px gap if markers follow it, then the markers at their stride
-    int clusterWidth = launchInfoWidth > 0 ? (int)launchInfoWidth : 0;
-    if (markerCount > 0)
-        clusterWidth += (clusterWidth > 0 ? 2 : 0) + 16 + (markerCount - 1) * MARKER_STRIDE;
+    int clusterWidth = markerCount > 0 ? 16 + (markerCount - 1) * MARKER_STRIDE : 0;
 
     // Icons sit one pixel down inside the 18 px pill, and on the point itself
     // when bare.
@@ -327,11 +257,6 @@ void RomBrowserTopScreenView::Draw(GraphicsContext& graphicsContext)
         x = chipX + (chipWidth - clusterWidth) / 2;
         DrawChip(graphicsContext, chipX, _launchInfoPosition.y, chipWidth, chipPaletteRow);
     }
-    if (launchInfoWidth > 0)
-    {
-        _launchInfoLabel->SetPosition(x + (int)launchInfoWidth - 96, _launchInfoPosition.y + 2);
-        x += launchInfoWidth + 2;
-    }
     int markerX[3] = {};
     for (int i = 0; i < 3; i++)
     {
@@ -340,8 +265,6 @@ void RomBrowserTopScreenView::Draw(GraphicsContext& graphicsContext)
         markerX[i] = x;
         x += MARKER_STRIDE;
     }
-    // the labels draw after the chips and therefore get lower oam indices,
-    // which puts them in front
     ViewContainer::Draw(graphicsContext);
     for (int i = 0; i < 3; i++)
     {
@@ -415,13 +338,13 @@ void RomBrowserTopScreenView::VBlank()
 {
     ViewContainer::VBlank();
 
-    // the chip pieces are semi-transparent OBJs so the pills reveal a hint of the
-    // theme art behind them (the labels/heart/check stay opaque normal OBJs in
-    // front). Reuse the splash's REG_BLDCNT_SUB value: BG1 (its 1st target) is off
-    // in the browser, so its only live effect is picking the theme backgrounds and
+    // the chip pieces are semi-transparent OBJs so the pill reveals a hint of the
+    // theme art behind it (the markers stay opaque normal OBJs in front). Reuse
+    // the splash's REG_BLDCNT_SUB value: BG1 (its 1st target) is off in the
+    // browser, so its only live effect is picking the theme backgrounds and
     // backdrop as 2nd targets, and matching the value keeps the startup fade - which
     // also drives these registers until it hands off - from glitching. 12/16 pill +
-    // 4/16 backdrop keeps the labels readable over busy art.
+    // 4/16 backdrop keeps the markers readable over busy art.
     REG_BLDCNT_SUB = 0x3D42;
     REG_BLDALPHA_SUB = (4 << 8) | 12;
 

@@ -59,6 +59,7 @@
 static const struct { const char* button; const char* action; } kCommands[] =
 {
     { "X",        "收藏。长按：通关" },
+    { "A",        "有额外存档时：选择存档" },
     { "Y",        "本游戏的金手指" },
     { "L R",      "上一个／下一个首字母" },
     { "SELECT+A", "本文件夹中随机启动" },

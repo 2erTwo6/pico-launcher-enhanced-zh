@@ -8,8 +8,19 @@
 - The launcher UI is now in Simplified Chinese, including all numerals and Latin
   text, drawn with a WenQuanYi Bitmap Song dot-matrix font. The old proportional
   Japanese font files are replaced by a single 9pt bitmap `.nft2` font in `arm9/data`.
-
-#### Changed
+  The screens added upstream since are in Chinese too: the save picker, the New save
+  and Language entries in the menu, and the play time figures in the panels.
+- A DS game can start in a language other than the console's. Language in the menu, next to New
+  save, moves the highlighted DS game to the next language of its region and names it; Console
+  is the default. The choice is `gameLanguage` in `gamedata.json`. It needs a Pico Loader
+  Enhanced newer than v1.0.1, where tasken wrote the part that sets the language: with v1.0.1 and
+  earlier, or the official Pico Loader v1.7.1 and earlier, Language is faded. Some games keep the
+  console's language whatever it says. Going back to v1.11.0 or earlier deletes `gameLanguage`
+  from `gamedata.json` the first time it saves. Cobalt246 asked for it (#45).
+- The save picker shows the day and month each save was last played, and a save named in PicoDex
+  shows that name in place of Main save or Save N. Both are `saves` in `gamedata.json`, and the
+  dates stay as they were while launch tracking is off. Going back to v1.11.0 or earlier deletes
+  `saves` from `gamedata.json` the first time it saves.
 - The favorite heart, the completed check and the top screen's star keep their red,
   green and gold on every theme. Before this, the heart took the theme's primary color
   on the top screen, in the favorites list and in statistics (upstream `d8f80d9`).
@@ -21,6 +32,68 @@
   with only the keys it knows, resetting `romBrowserHideEmptyFolders`, `saveLocation`,
   `launchTracking` and `backlightLevel`, while `gamedata.json` is kept (upstream `f58f427`).
   It also describes the Chinese-only interface instead of saying only `english` is supported.
+
+#### Changed
+- Play time is measured now, with Pico Loader Enhanced: the loader counts the frames a DS game
+  runs and hands them to the launcher when you leave the game with the in-game exit. Time asleep
+  is not counted, and a session that ends with the console switched off adds nothing, and neither
+  do games without the in-game exit or the official Pico Loader. It shows per game and in total in
+  the statistics panel, and per game in the favorites panel. The play time earlier versions
+  counted, the clock until the next launcher boot, stays in `gamedata.json` as `playMinutes` and
+  is no longer shown. Going back to v1.11.0 or earlier deletes `playSeconds` from `gamedata.json`
+  the first time it saves.
+
+#### Fixed
+- Titles in the file list could come out blank, repeated, mixed up or from the folder just left
+  after scrolling fast with L and R or going to the parent folder. From the same cause, holding L
+  and Down while pressing B over and over made the folders disappear one by one until the
+  launcher stopped taking input (#56). cgimenes found both causes (#42).
+- Scrolling fast through a big folder could garble a title or an icon: an item that scrolled away
+  had its file info freed while it was still loading. Changing the view, the sort or a filter
+  during a load had the same problem. cgimenes found it (#40).
+- The display settings sheet opens with the focus on the layout in use. It opened on the first
+  one, whichever layout was in use. cgimenes found it (#43).
+- Games with a file name longer than 96 bytes keep their favorite and completed marks, launch
+  count, last played date, play time and last save used. Nothing was stored for them, and X gave
+  no sign of why. Names of up to 255 bytes are stored, the longest the launcher reads from the
+  card. Going back to v1.11.0 or earlier loses what was stored for those games the first time
+  it saves. OneSidedPrism reported it (#46).
+- Marking a favorite or a completed game, or anything else that saves `gamedata.json`, no longer
+  turns some colors of the bottom screen wrong for a moment, such as a black bar in the menu or
+  the first row of the menu in other colors.
+- Taking a screenshot no longer shows a frame of wrong colors on the bottom screen before and
+  after the black flash, and with a custom theme the background no longer goes missing for a
+  frame just before it. The flash lasts a frame longer.
+- The "Screenshot saved" message and the other short messages at the bottom no longer show the
+  theme's background through their box while they appear and go away, which on a dark theme
+  looked like a smudge.
+
+### [enhanced-v1.11.0]
+
+#### Added
+- Save slots: a DS game can keep up to nine extra saves, `<game name>.sav1` to `.sav9`, the names
+  TWiLight Menu++ gives them, next to the game or in the saves folder. A on a game that has any
+  opens a sheet to pick the save, on the one the game was started on last time, with + New save
+  while a name is free; a game without extra saves starts right away, as before. To give a game
+  its first extra save, highlight it and pick New save in the menu. When `<game name>.sav3` would
+  not fit in the path the loader gets, picking Save 3 shows `Name too long for Save 3` and the
+  game doesn't start. Deleting a game deletes its extra saves too. The save each game was started
+  on last time is `saveSlot` in `gamedata.json`. Based on BigBrainAFK's pull request (#32).
+
+#### Changed
+- The menu's two filters share a row and no longer say on or off; a filter that is on still has
+  its name and icon in red or green. While a DS game is highlighted, New save has a row of its
+  own above them.
+- The favorite heart is red on every theme. On the top screen, in the statistics panel and in the
+  recently played list it took the theme's main color, while the menu's Only favorites filter was
+  red.
+
+#### Fixed
+- The delete confirmation gives the save's name a line of its own. With a long name the line was
+  cut before it said whether the save is deleted or kept.
+- A DS game whose folder can't be read when it is launched, because the folder's path is too long
+  or the card fails to read, stays in the browser with `Folder path too long` or `Couldn't read
+  the game`. It used to start with the folder missing from its path.
 
 ### [enhanced-v1.10.0]
 

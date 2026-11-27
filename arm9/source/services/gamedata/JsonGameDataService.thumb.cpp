@@ -19,13 +19,16 @@
 #define KEY_COMPLETED         "completed"
 #define KEY_LAUNCH_COUNT      "launchCount"
 #define KEY_PLAY_MINUTES      "playMinutes"
+#define KEY_PLAY_SECONDS      "playSeconds"
 #define KEY_LAST_PLAYED       "lastPlayed"
 #define KEY_PATH              "path"
+#define KEY_SAVE_SLOT         "saveSlot"
+#define KEY_GAME_LANGUAGE     "gameLanguage"
+#define KEY_SAVES             "saves"
+#define KEY_SAVE_NAME         "name"
 #define KEY_SESSION_GAME      "sessionGame"
 #define KEY_SESSION_GAME_CODE "sessionGameCode"
 #define KEY_SESSION_START     "sessionStart"
-
-#define SESSION_MAX_MINUTES   (6 * 60)
 
 // ArduinoJson silently drops data when its pool is exhausted, so the pool is
 // sized from the entry count (write) or file size (read) instead of a fixed
@@ -39,47 +42,25 @@
 #define JSON_POOL_BASE_SIZE       4096
 #define JSON_POOL_PER_ENTRY       440
 #define JSON_POOL_READ_MAX        (96 * 1024)
+// a game's "saves" member, and three slots for each of its ten saves
+#define JSON_POOL_PER_GAME_SAVES  (31 * 16)
+// free entries kept for games first marked or launched in this session
+#define ENTRY_HEADROOM            16
+// the same for games whose saves get a name or a date
+#define GAME_SAVES_HEADROOM       4
 
-static u32 writePoolSize(u32 entryCount)
+// literals, so ArduinoJson links the keys instead of copying them
+static const char* const sSaveKeys[] = { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+static_assert(sizeof(sSaveKeys) / sizeof(sSaveKeys[0]) == IGameDataService::kMaxSaveSlot + 1);
+
+static u32 writePoolSize(u32 entryCount, u32 gameSavesCount)
 {
-    return JSON_POOL_BASE_SIZE + entryCount * JSON_POOL_PER_ENTRY;
+    return JSON_POOL_BASE_SIZE + entryCount * JSON_POOL_PER_ENTRY + gameSavesCount * JSON_POOL_PER_GAME_SAVES;
 }
 
-/// @brief Parses "YYYY-MM-DD HH:MM" into absolute minutes (days-from-civil
-///        algorithm), so sessions crossing midnight or month ends work.
-static bool parseDateTime(const char* text, s64& totalMinutes)
+static bool isEmpty(const GameSaveInfo& save)
 {
-    if (strlen(text) < 16)
-        return false;
-    auto number = [] (const char* p, int digits) -> int
-    {
-        int value = 0;
-        for (int i = 0; i < digits; i++)
-        {
-            if (p[i] < '0' || p[i] > '9')
-                return -1;
-            value = value * 10 + (p[i] - '0');
-        }
-        return value;
-    };
-    int year = number(text, 4);
-    int month = number(text + 5, 2);
-    int day = number(text + 8, 2);
-    int hour = number(text + 11, 2);
-    int minute = number(text + 14, 2);
-    if (year < 2000 || month < 1 || month > 12 || day < 1 || day > 31 ||
-        hour < 0 || hour > 23 || minute < 0 || minute > 59)
-    {
-        return false;
-    }
-    year -= month <= 2;
-    int era = year / 400;
-    u32 yearOfEra = year - era * 400;
-    u32 dayOfYear = (153 * (month + (month > 2 ? -3 : 9)) + 2) / 5 + day - 1;
-    u32 dayOfEra = yearOfEra * 365 + yearOfEra / 4 - yearOfEra / 100 + dayOfYear;
-    s64 days = (s64)era * 146097 + dayOfEra;
-    totalMinutes = days * 1440 + hour * 60 + minute;
-    return true;
+    return save.name.GetString()[0] == 0 && save.lastPlayed.GetString()[0] == 0;
 }
 
 // A file name at or over the storage limit would be silently truncated into a
@@ -89,10 +70,8 @@ static bool parseDateTime(const char* text, s64& totalMinutes)
 static bool isStorableFileName(const char* fileName)
 {
     // String<char, N> holds N characters plus the terminator, so a name of
-    // exactly kMaxFileNameLength fits and must be accepted: refusing it would
-    // drop entries that older versions stored just fine.
-    return fileName && fileName[0] != 0 &&
-        strlen(fileName) <= IGameDataService::kMaxFileNameLength;
+    // exactly FF_LFN_BUF bytes fits, and FatFs returns names that long.
+    return fileName && fileName[0] != 0 && strlen(fileName) <= FF_LFN_BUF;
 }
 
 // homebrew headers can hold garbage where retail games keep their code; only
@@ -156,7 +135,8 @@ GameDataEntry* JsonGameDataService::GetOrCreateEntry(const char* fileName, const
 
     if (_entryCount == _entryCapacity)
     {
-        u32 newCapacity = _entryCapacity == 0 ? 16 : _entryCapacity * 2;
+        // Load sized the array for the file, so this only makes room for new games
+        u32 newCapacity = _entryCapacity + ENTRY_HEADROOM;
         auto newEntries = std::make_unique<GameDataEntry[]>(newCapacity);
         for (u32 i = 0; i < _entryCount; i++)
             newEntries[i] = _entries[i];
@@ -170,6 +150,38 @@ GameDataEntry* JsonGameDataService::GetOrCreateEntry(const char* fileName, const
     if (isUsableGameCode(gameCode))
         entry.gameCode = gameCode;
     return &entry;
+}
+
+const JsonGameDataService::GameSaves* JsonGameDataService::FindGameSaves(const GameDataEntry& entry) const
+{
+    return entry.gameSavesIndex == GameDataEntry::kNoGameSaves ? nullptr : &_gameSaves[entry.gameSavesIndex];
+}
+
+JsonGameDataService::GameSaves& JsonGameDataService::GetOrCreateGameSaves(GameDataEntry& entry)
+{
+    if (entry.gameSavesIndex != GameDataEntry::kNoGameSaves)
+        return _gameSaves[entry.gameSavesIndex];
+
+    u32 index = 0;
+    while (index < _gameSavesCount && _gameSaves[index].inUse)
+        index++;
+    if (index == _gameSavesCount)
+    {
+        if (_gameSavesCount == _gameSavesCapacity)
+        {
+            u32 newCapacity = _gameSavesCapacity + GAME_SAVES_HEADROOM;
+            auto newGameSaves = std::make_unique<GameSaves[]>(newCapacity);
+            for (u32 i = 0; i < _gameSavesCount; i++)
+                newGameSaves[i] = _gameSaves[i];
+            _gameSaves = std::move(newGameSaves);
+            _gameSavesCapacity = newCapacity;
+        }
+        _gameSavesCount++;
+    }
+    _gameSaves[index] = GameSaves();
+    _gameSaves[index].inUse = true;
+    entry.gameSavesIndex = (u16)index;
+    return _gameSaves[index];
 }
 
 void JsonGameDataService::ToggleFavorite(const char* fileName, const char* gameCode,
@@ -236,36 +248,14 @@ void JsonGameDataService::RecordLaunch(const char* fileName, const char* gameCod
     _version++;
 }
 
-bool JsonGameDataService::CloseOpenSession(const char* nowDateTime)
+bool JsonGameDataService::CloseOpenSession(u32 playSeconds)
 {
     if (_sessionStart.GetString()[0] == 0)
         return false;
 
-    s64 startMinutes = 0;
-    s64 nowMinutes = 0;
-    if (parseDateTime(_sessionStart.GetString(), startMinutes) &&
-        parseDateTime(nowDateTime, nowMinutes))
-    {
-        s64 minutes = nowMinutes - startMinutes;
-        // longer than the cap means the console was off, not playing
-        if (minutes >= 1 && minutes <= SESSION_MAX_MINUTES)
-        {
-            // by name, like every other lookup: if the rom was renamed since the
-            // launch there is nothing to credit and the minutes are dropped
-            // rather than invented onto a new entry
-            if (auto* entry = Find(_sessionGameFileName.GetString()))
-                entry->playMinutes += (u32)minutes;
-        }
-    }
-    ClearSession();
-    // the cleared session (and any credited time) must be persisted
-    return true;
-}
-
-bool JsonGameDataService::DiscardOpenSession()
-{
-    if (_sessionStart.GetString()[0] == 0)
-        return false;
+    // by name, like every other lookup: a rom renamed since its launch gets nothing
+    if (auto* entry = Find(_sessionGameFileName.GetString()))
+        entry->playSeconds += playSeconds;
     ClearSession();
     return true;
 }
@@ -278,11 +268,92 @@ void JsonGameDataService::ClearSession()
     _version++;
 }
 
+bool JsonGameDataService::SetSaveSlot(const char* fileName, u32 saveSlot, const char* gameCode)
+{
+    if (saveSlot > kMaxSaveSlot)
+        return false;
+    // slot 0 is what a game without an entry uses already: nothing to create
+    if (saveSlot == 0 && !Find(fileName))
+        return false;
+    auto* entry = GetOrCreateEntry(fileName, gameCode);
+    if (!entry)
+        return false;
+    entry->saveSlot = (u8)saveSlot;
+    _version++;
+    return true;
+}
+
+const GameSaveInfo* JsonGameDataService::GetSaveInfo(const char* fileName, u32 saveSlot) const
+{
+    const auto* entry = GetEntry(fileName);
+    const auto* gameSaves = entry && saveSlot <= kMaxSaveSlot ? FindGameSaves(*entry) : nullptr;
+    return gameSaves ? &gameSaves->saves[saveSlot] : nullptr;
+}
+
+bool JsonGameDataService::RecordSaveLaunch(const char* fileName, u32 saveSlot, bool newSave,
+    const char* lastPlayedDateTime, const char* gameCode)
+{
+    if (saveSlot > kMaxSaveSlot)
+        return false;
+    bool changed = false;
+    GameDataEntry* entry = Find(fileName);
+    GameSaves* gameSaves = entry && entry->gameSavesIndex != GameDataEntry::kNoGameSaves
+        ? &_gameSaves[entry->gameSavesIndex] : nullptr;
+    // counted before the new save below can take the only date away
+    bool hasDates = false;
+    if (gameSaves)
+    {
+        for (const auto& save : gameSaves->saves)
+            hasDates |= save.lastPlayed.GetString()[0] != 0;
+    }
+    if (newSave && gameSaves)
+    {
+        // the slot's last save was deleted, and its name was for that one
+        gameSaves->saves[saveSlot] = GameSaveInfo();
+        changed = true;
+    }
+    if (lastPlayedDateTime)
+    {
+        if (!entry)
+            entry = GetOrCreateEntry(fileName, gameCode);
+        if (entry)
+        {
+            auto& saves = GetOrCreateGameSaves(*entry).saves;
+            // Saves from before they had dates: the one the last launch was on was
+            // started at the game's lastPlayed. Only while no save has a date, as a
+            // later launch with tracking off moves saveSlot and leaves lastPlayed behind.
+            if (!hasDates)
+                saves[entry->saveSlot].lastPlayed = entry->lastPlayed.GetString();
+            saves[saveSlot].lastPlayed = lastPlayedDateTime;
+            changed = true;
+        }
+    }
+    if (changed)
+        _version++;
+    return changed;
+}
+
+bool JsonGameDataService::SetGameLanguage(const char* fileName, PicoLoaderGameLanguage gameLanguage,
+    const char* gameCode)
+{
+    // the console's language is what a game without an entry gets already
+    if (gameLanguage == PLOAD_GAME_LANGUAGE_AUTO && !Find(fileName))
+        return false;
+    auto* entry = GetOrCreateEntry(fileName, gameCode);
+    if (!entry)
+        return false;
+    entry->gameLanguage = (u8)gameLanguage;
+    _version++;
+    return true;
+}
+
 void JsonGameDataService::RemoveEntry(const char* fileName)
 {
     GameDataEntry* entry = Find(fileName);
     if (!entry)
         return;
+    if (entry->gameSavesIndex != GameDataEntry::kNoGameSaves)
+        _gameSaves[entry->gameSavesIndex].inUse = false;
     _entryCount--;
     *entry = _entries[_entryCount];
     _version++;
@@ -303,13 +374,22 @@ void JsonGameDataService::SaveAsync(TaskQueueBase* ioTaskQueue)
     // serialization happens on the calling (main) thread: ArduinoJson links
     // pointers into _entries, which a concurrent mutation could reallocate if
     // this ran on the IO thread. Only the finished byte buffer crosses threads.
-    DynamicJsonDocument json(writePoolSize(_entryCount));
+    DynamicJsonDocument json(writePoolSize(_entryCount, _gameSavesCount));
     auto games = json[KEY_GAMES].to<JsonObject>();
     for (u32 i = 0; i < _entryCount; i++)
     {
         const auto& entry = _entries[i];
+        const auto* gameSaves = FindGameSaves(entry);
+        bool hasSaveInfo = false;
+        if (gameSaves)
+        {
+            for (const auto& save : gameSaves->saves)
+                hasSaveInfo |= !isEmpty(save);
+        }
         // entries reset back to all-default state are pruned on write
-        if (!entry.favorite && !entry.completed && entry.launchCount == 0 && entry.playMinutes == 0)
+        if (!entry.favorite && !entry.completed && entry.launchCount == 0 && entry.playMinutes == 0 &&
+            entry.playSeconds == 0 && entry.saveSlot == 0 && entry.gameLanguage == PLOAD_GAME_LANGUAGE_AUTO &&
+            !hasSaveInfo)
             continue;
         auto game = games[entry.fileName.GetString()].to<JsonObject>();
         if (entry.gameCode.GetString()[0] != 0)
@@ -322,10 +402,31 @@ void JsonGameDataService::SaveAsync(TaskQueueBase* ioTaskQueue)
             game[KEY_LAUNCH_COUNT] = entry.launchCount;
         if (entry.playMinutes > 0)
             game[KEY_PLAY_MINUTES] = entry.playMinutes;
+        if (entry.playSeconds > 0)
+            game[KEY_PLAY_SECONDS] = entry.playSeconds;
         if (entry.lastPlayed.GetString()[0] != 0)
             game[KEY_LAST_PLAYED] = entry.lastPlayed.GetString();
         if (entry.path.GetString()[0] != 0)
             game[KEY_PATH] = entry.path.GetString();
+        if (entry.saveSlot != 0)
+            game[KEY_SAVE_SLOT] = entry.saveSlot;
+        if (entry.gameLanguage != PLOAD_GAME_LANGUAGE_AUTO)
+            game[KEY_GAME_LANGUAGE] = entry.gameLanguage;
+        if (hasSaveInfo)
+        {
+            auto saves = game[KEY_SAVES].to<JsonObject>();
+            for (u32 slot = 0; slot <= kMaxSaveSlot; slot++)
+            {
+                const auto& save = gameSaves->saves[slot];
+                if (isEmpty(save))
+                    continue;
+                auto saveJson = saves[sSaveKeys[slot]].to<JsonObject>();
+                if (save.name.GetString()[0] != 0)
+                    saveJson[KEY_SAVE_NAME] = save.name.GetString();
+                if (save.lastPlayed.GetString()[0] != 0)
+                    saveJson[KEY_LAST_PLAYED] = save.lastPlayed.GetString();
+            }
+        }
     }
     if (_sessionStart.GetString()[0] != 0)
     {
@@ -464,6 +565,19 @@ void JsonGameDataService::Load()
     auto games = json[KEY_GAMES].as<JsonObjectConst>();
     if (games.isNull())
         return;
+    // one allocation for the games in the file instead of growing into it
+    _entryCapacity = games.size() + ENTRY_HEADROOM;
+    _entries = std::make_unique<GameDataEntry[]>(_entryCapacity);
+    // the same for the games with names or dates for their saves, while the parse
+    // pool is still taking its share of the heap
+    u32 gameSavesCount = 0;
+    for (auto item : games)
+        gameSavesCount += item.value()[KEY_SAVES].size() != 0;
+    if (gameSavesCount != 0)
+    {
+        _gameSavesCapacity = gameSavesCount + GAME_SAVES_HEADROOM;
+        _gameSaves = std::make_unique<GameSaves[]>(_gameSavesCapacity);
+    }
     for (auto item : games)
     {
         auto* entry = GetOrCreateEntry(item.key().c_str(), item.value()[KEY_GAME_CODE] | "");
@@ -475,8 +589,33 @@ void JsonGameDataService::Load()
         entry->completed = item.value()[KEY_COMPLETED] | false;
         entry->launchCount = item.value()[KEY_LAUNCH_COUNT] | 0u;
         entry->playMinutes = item.value()[KEY_PLAY_MINUTES] | 0u;
+        entry->playSeconds = item.value()[KEY_PLAY_SECONDS] | 0u;
         entry->lastPlayed = item.value()[KEY_LAST_PLAYED] | "";
         entry->path = item.value()[KEY_PATH] | "";
+        // a slot this build can't name a save for falls back to the regular one
+        u32 saveSlot = item.value()[KEY_SAVE_SLOT] | 0u;
+        entry->saveSlot = saveSlot <= kMaxSaveSlot ? (u8)saveSlot : 0;
+        // like the loader, anything past Korean is the console's language
+        u32 gameLanguage = item.value()[KEY_GAME_LANGUAGE] | (u32)PLOAD_GAME_LANGUAGE_AUTO;
+        entry->gameLanguage = gameLanguage <= PLOAD_GAME_LANGUAGE_KOREAN ? gameLanguage : PLOAD_GAME_LANGUAGE_AUTO;
+        for (auto saveJson : item.value()[KEY_SAVES].as<JsonObjectConst>())
+        {
+            // "0" to "9"; like saveSlot, one this build has no save for is dropped
+            const char* key = saveJson.key().c_str();
+            if (key[0] < '0' || key[0] > '0' + (int)kMaxSaveSlot || key[1] != 0)
+                continue;
+            // Too long is dropped, not cut: a cut could split a UTF-8 character, and
+            // the labels read all the bytes its first byte announces, even past the end.
+            const char* name = saveJson.value()[KEY_SAVE_NAME] | "";
+            const char* lastPlayed = saveJson.value()[KEY_LAST_PLAYED] | "";
+            GameSaveInfo save;
+            if (strlen(name) <= GameSaveInfo::kMaxNameBytes)
+                save.name = name;
+            if (strlen(lastPlayed) <= GameSaveInfo::kDateLength)
+                save.lastPlayed = lastPlayed;
+            if (!isEmpty(save))
+                GetOrCreateGameSaves(*entry).saves[key[0] - '0'] = save;
+        }
     }
     _sessionGameFileName = json[KEY_SESSION_GAME] | "";
     _sessionGameCode = json[KEY_SESSION_GAME_CODE] | "";

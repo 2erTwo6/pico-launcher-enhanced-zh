@@ -13,12 +13,8 @@ A feature fork of [Pico Launcher](https://github.com/LNH-team/pico-launcher) by 
 > The repository layout, the installation steps and the SD card folders are unchanged from upstream.
 > The Chinese readme is [README.md](README.md).
 
-![Cover flow in the Material theme: the most launched game, a favorite and completed, with its star, heart and check above the icon](docs/images/enhanced/Coverflow.png)
-![Icon grid in the Material theme: the most launched game, a favorite and completed, with its star, heart and check above the icon](docs/images/enhanced/Grid.png)
-![A custom theme: the game markers sit above the game's icon, drawn to read on any art](docs/images/enhanced/CustomTheme.png)
-![The favorites panel, every favorite across all folders with its play time](docs/images/enhanced/Favorites.png)
-![The statistics panel: totals, most launched games and the last one played](docs/images/enhanced/Statistics.png)
-![The menu: recently played, favorites, statistics, delete game, and the two filters with their state](docs/images/enhanced/Menu.png)
+![The statistics panel: the folder's game count, totals, the most launched games and the last one played](docs/images/enhanced/Statistics.png)
+![The menu, with Mario Kart DS and its star, heart and check on the top screen: recently played, favorites, statistics, delete game, a new save for that game and the two filters](docs/images/enhanced/Menu.png)
 ![The about sheet: Pico Launcher by the LNH team, Enhanced by rasalopa, where the build came from, and a cheat sheet of the controls](docs/images/enhanced/About.png)
 
 *Taken on the console with the launcher's own screenshot key (hold START).*
@@ -28,24 +24,26 @@ A feature fork of [Pico Launcher](https://github.com/LNH-team/pico-launcher) by 
 Everything upstream Pico Launcher offers (display modes, [custom icons, banners & covers](docs/Customization.md) for games *and folders*, [themes](docs/Themes.md), [cheats](docs/Cheats.md), [file associations](docs/FileAssociations.md); see [Usage](docs/Usage.md)), plus:
 
 - **Go back to the launcher from inside a game** (optional): with Pico Loader Enhanced, the second zip in the release, hold L + R + Right + Select for a moment in a DS game; see [Installation](#installation)
-- **A menu instead of a row of icons**: the app bar keeps back and display settings and gains a three-dot button; recently played, favorites, statistics, deletion and the two filters live in the sheet it opens, each with its name
+- **A menu instead of a row of icons**: the app bar keeps back and display settings and gains a three-dot button; recently played, favorites, statistics, deletion, a new save for the highlighted DS game and the two filters live in the sheet it opens, each with its name
 - **About sheet**: from the menu's title row: who made what, the exact build and the repository it came from, and a cheat sheet of the controls that have no button
 - **Jump by initial**: press L or R to jump to the next initial letter in a folder sorted by name; the letter you land on shows for a moment at the bottom of the touch screen
 - **Game count** of the current folder, at the top of the statistics panel
 - **Random game launch** with SELECT + A
 - **Favorites**: press X on a game; a heart shows on the top screen
 - **Completed games**: hold X on a game; a green check shows on the top screen
-- **Favorites and completed filters**: Only favorites and Only completed in the menu, each saying when it is on
+- **Favorites and completed filters**: Only favorites and Only completed in the menu, red or green while on
 - **Favorites panel**: every favorite across all folders, from the menu; tapping one jumps to it
 - **Recently played panel**: from the menu; tapping an entry jumps to the game
-- **Statistics panel**: totals, most-played games and the launcher version, from the menu
+- **Statistics panel**: totals, most-played games with their play time and the launcher version, from the menu
 - **Screenshots**: hold START for about half a second to save both screens to `/_pico/screenshots`
 - **Per-game launch tracking**: launch count and last-played date, kept per game; the recently played panel shows each game's date, and the statistics panel the counts of the three most launched games; can be switched off in `settings.json`
-- **Approximate play time**: per game, in the favorites panel
-- **Game deletion**: from the menu, with confirmation; removes the ROM, and its save for a DS or GBA game
+- **Play time** counted while you play, with Pico Loader Enhanced and its in-game exit: per game in the favorites and statistics panels, and the total in statistics
+- **Game deletion**: from the menu, with confirmation; removes the ROM and, for a DS or GBA game, its save; a DS game's extra saves go too
 - **ROMs run by an emulator count as games**: GB, SNES or any ROM opened through a file association can be marked, deleted and picked at random; see [FileAssociations.md](docs/FileAssociations.md)
 - **Theme deletion**: from the theme selector, with confirmation; the theme in use and the two that come with the launcher are kept
 - **A saves folder**: set `"saveLocation": "saves"` in `settings.json` and DS saves live in a `saves` folder next to the games, the layout TWiLight Menu++ uses, so both launchers can share one card; see [Usage.md](docs/Usage.md#settings)
+- **Save slots**: up to nine extra saves per DS game, `.sav1` to `.sav9` as TWiLight Menu++ names them; A on a game that has any lets you pick the one to play, and New save in the menu starts the game on a new one; see [Save slots](docs/Enhanced.md#save-slots)
+- **Game language**: Language in the menu moves the highlighted DS game to the next language of its region, Console included; it needs a Pico Loader Enhanced newer than v1.0.1, see [Game language](docs/Enhanced.md#game-language)
 - **Brightness control**: set the DS Lite's backlight level from display settings
 - **Hide empty folders**: optional; folders with nothing playable inside are left out of the listing
 - **Cheats list that reads better**: the list wraps around at both ends, and X turns every cheat off at once
@@ -77,9 +75,11 @@ No other changes to your SD card are needed: themes, covers and the `_pico` fold
 > [!NOTE]
 > To use Pico Launcher, the Pico Loader files (`aplist.bin`, `patchlist.bin`, `savelist.bin`, `picoLoader7.bin` and `picoLoader9.bin`) must also be present in the `/_pico` folder on your SD card.
 
+On another flashcart, like an R4 or a DSTT, the steps are the same when the card starts `_picoboot.nds` from the root, as the DSTT setup from flashcarts.net does. Keep the Pico Loader files made for that card in `/_pico`: LNH has a zip for each card in the [Pico Loader releases](https://github.com/LNH-team/pico-loader/releases).
+
 ### Optional: the in-game exit
 
-The release also has a second zip, Pico Loader Enhanced: a version of Pico Loader that lets you go back to the launcher from inside a DS game by holding L + R + Right + Select for a moment. To use it, copy its `picoLoader7.bin` and `picoLoader9.bin` into `/_pico/`, over the official ones. It is optional, the launcher works the same with the official loader. Which games get the exit, and the known issues, are in the [release notes](../../releases/latest).
+The release also has a second zip, Pico Loader Enhanced: a version of Pico Loader that lets you go back to the launcher from inside a DS game by holding L + R + Right + Select for a moment. To use it, copy its `picoLoader7.bin` and `picoLoader9.bin` into `/_pico/`, over the official ones. It is optional, the launcher works the same with the official loader. It is the DSpico build, so on another flashcart keep the loader made for that card. Which games get the exit, and the known issues, are in the [release notes](../../releases/latest).
 
 ## Building from source
 We recommend using WSL (Windows Subsystem for Linux), or MSYS2 to compile this repository.
@@ -139,7 +139,7 @@ The [`tools/`](tools/) directory contains desktop helper scripts for preparing S
 
 ## Data formats
 
-The fork stores per-game data (favorites, launch counts, play time) in `/_pico/gamedata.json`. Each entry belongs to one ROM file. If a favorite or a play count is not where you expect it, [Data storage](docs/Enhanced.md#data-storage) explains why in a table. The file format itself is documented in [Game data](docs/GameData.md) for tool authors.
+The fork stores per-game data (favorites, launch counts, play time, the save slots and the language of a game) in `/_pico/gamedata.json`. Each entry belongs to one ROM file. If a favorite or a play count is not where you expect it, [Data storage](docs/Enhanced.md#data-storage) explains why in a table. The file format itself is documented in [Game data](docs/GameData.md) for tool authors.
 
 ## Contributing
 
@@ -158,9 +158,18 @@ This project is licensed under the Zlib license. For details, see `LICENSE.txt`.
 Additional licenses may apply to the project. For details, see the `license` directory.
 
 ## Contributors
+
+Pico Launcher, by the LNH team:
+
 - [@Gericom](https://github.com/Gericom)
 - [@XLuma](https://github.com/XLuma)
 - [@Dartz150](https://github.com/Dartz150)
 - [@lifehackerhansol](https://github.com/lifehackerhansol)
 
 All credit for the launcher's foundation goes to the LNH team. This fork only builds on their excellent work.
+
+Pico Launcher Enhanced:
+
+- [@rasalopa](https://github.com/rasalopa), who keeps the fork
+- [@marlooonxdd](https://github.com/marlooonxdd): sleep when the lid closes ([#23](https://github.com/rasalopa/pico-launcher-enhanced/pull/23)) and a fix in the selector of the icon buttons ([#24](https://github.com/rasalopa/pico-launcher-enhanced/pull/24))
+- [@BigBrainAFK](https://github.com/BigBrainAFK): save slots for DS games ([#32](https://github.com/rasalopa/pico-launcher-enhanced/pull/32))

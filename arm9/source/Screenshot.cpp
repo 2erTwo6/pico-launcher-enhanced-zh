@@ -5,6 +5,7 @@
 #include <libtwl/gfx/gfxBackground.h>
 #include <libtwl/gfx/gfxOam.h>
 #include <libtwl/gfx/gfxPalette.h>
+#include <libtwl/gfx/gfxStatus.h>
 #include <libtwl/dma/dmaNitro.h>
 #include <libtwl/rtos/rtosIrq.h>
 #include "core/mini-printf.h"
@@ -325,6 +326,13 @@ Screenshot::~Screenshot()
 
 void Screenshot::VBlankBegin()
 {
+    // a handback lifts the blackout here: the irq has just walked the palettes of the sprites going up
+    if (_liftBlackout)
+    {
+        mainReg(REG_OFFSET_MASTER_BRIGHT) = _savedMasterBright;
+        _liftBlackout = false;
+    }
+
     // The bottom screen is what the main engine already draws, so it is armed
     // before this frame's sprites go up: those are the ones recorded.
     if (_state != State::Arming || _screen != Screen::Bottom)
@@ -405,6 +413,9 @@ void Screenshot::PrepareTopCapture()
     // Block A receives the capture, so save the part being written to. The upper
     // 96 KB is used, which leaves the single flat texel the material theme keeps
     // at offset 0 alone.
+    // dark from here: the 3d engine is drawing this frame, and a custom theme's bottom background is in block A
+    _savedMasterBright = mainReg(REG_OFFSET_MASTER_BRIGHT);
+    mainReg(REG_OFFSET_MASTER_BRIGHT) = MASTER_BRIGHT_BLACK;
     _savedVramAMapping = mem_getVramAMapping();
     mem_setVramAMapping(MEM_VRAM_AB_LCDC);
     DC_InvalidateRange(_blockBackup, CAPTURE_BYTES);
@@ -423,8 +434,12 @@ void Screenshot::PrepareTopCapture()
 
 void Screenshot::MirrorSubEngine()
 {
+    // The palette manager rewrites object palette rows partway down the frame,
+    // which would repaint the colors copied below, inside the capture.
+    rtos_disableIrqMask(RTOS_IRQ_VCOUNT);
+    _vcountIrqSuppressed = true;
+
     _savedDispCnt = REG_DISPCNT;
-    _savedMasterBright = mainReg(REG_OFFSET_MASTER_BRIGHT);
     for (u32 i = 0; i < kMirroredRegCount; i++)
         _savedRegs[i] = mainReg(kMirroredRegs[i]);
     for (u32 i = 0; i < PLTT_HALFWORDS; i++)
@@ -533,14 +548,8 @@ void Screenshot::MirrorSubEngine()
     // So turn it off instead of showing borrowed state. Master brightness is
     // the last thing in the display pipeline, after the capture unit reads the
     // engine, so the recorded image should not care - and if it does, the saved
-    // bmp comes out black and says so plainly. Put back as the very last thing
-    // the restore does, so the screen never lights up on borrowed state.
-    mainReg(REG_OFFSET_MASTER_BRIGHT) = MASTER_BRIGHT_BLACK;
-
-    // The palette manager rewrites object palette rows partway down the frame,
-    // which would repaint the colours we just copied, inside the capture.
-    rtos_disableIrqMask(RTOS_IRQ_VCOUNT);
-    _vcountIrqSuppressed = true;
+    // bmp comes out black and says so plainly. Turned off in PrepareTopCapture,
+    // a frame before this, and put back at the vblank after the restore.
 }
 
 void Screenshot::RestoreMainEngine()
@@ -571,17 +580,14 @@ void Screenshot::RestoreMainEngine()
     mem_setVramAMapping(_savedVramAMapping);
     if (_vcountIrqSuppressed)
     {
+        // the walk the irq began at the mirroring vblank stays stopped; the next vblank starts a new one
+        gfx_setVCountMatchIrqEnabled(false);
         rtos_ackIrqMask(RTOS_IRQ_VCOUNT);
         rtos_enableIrqMask(RTOS_IRQ_VCOUNT);
         _vcountIrqSuppressed = false;
     }
-    // Last, and on its own. This is what the player is looking at, so it comes
-    // off only once every piece of borrowed state is back: while it was part of
-    // the mirrored list it went back first, and the bottom screen then drew
-    // several lines with the other screen's palettes, with two of its own
-    // background blocks still lent out as palette slots, and for a moment with
-    // no block mapped at its background memory at all.
-    mainReg(REG_OFFSET_MASTER_BRIGHT) = _savedMasterBright;
+    // not lifted here: the rest of this frame would show the sprites with the palettes saved at the mirror
+    _liftBlackout = true;
 }
 
 void Screenshot::Update()

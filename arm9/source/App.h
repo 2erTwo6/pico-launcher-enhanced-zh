@@ -146,6 +146,7 @@ private:
     void EndSplashBottom();
     void LoadTheme();
     void VCountIrq();
+    void VBlankIrq();
     void HandleInput();
     void HandleTrigger(RomBrowserStateTrigger trigger, RomBrowserState newState);
     void HandleShowGameInfoTrigger();
@@ -164,6 +165,8 @@ private:
     void HandleHideMenuTrigger();
     void HandleShowAboutTrigger();
     void HandleHideAboutTrigger();
+    void HandleShowSavePickerTrigger();
+    void HandleHideSavePickerTrigger();
     void CloseSheetIfLeavingMenu();
     void HandleNavigateTrigger();
     void HandleFolderLoadDoneTrigger();

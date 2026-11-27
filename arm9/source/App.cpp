@@ -31,6 +31,7 @@
 #include "romBrowser/views/deleteconfirm/DeleteConfirmBottomSheetView.h"
 #include "romBrowser/views/menu/MenuBottomSheetView.h"
 #include "romBrowser/views/about/AboutBottomSheetView.h"
+#include "romBrowser/views/savepicker/SavePickerBottomSheetView.h"
 #include "romBrowser/views/DisplaySettingsBottomSheetView.h"
 #include "bgm/AudioStreamPlayer.h"
 #include "bgm/BgmService.h"
@@ -184,6 +185,18 @@ void App::VCountIrq()
     _mainObjPltt.VCount();
 }
 
+void App::VBlankIrq()
+{
+    // left alone only while the main engine holds the top screen's palettes for a screenshot
+    if (!_screenshot.IsMirrorInPlace())
+    {
+        // a vcount still pending here is the last frame's, and would run after this walk
+        rtos_ackIrqMask(RTOS_IRQ_VCOUNT);
+        _mainObjPltt.VBlank();
+    }
+    VBlank::NotifyIrq();
+}
+
 void App::Run()
 {
     // The hardware OAM still holds whatever the firmware or the previous
@@ -275,6 +288,8 @@ void App::Run()
     _fadeAnimator = Animator(16, 0, 16, &md::sys::motion::easing::linear);
 
     MainLoop();
+    // ~App frees the controller before the views, so nothing may still run on io
+    _ioTaskQueue.WaitForQueued();
 
     _bgmService.StopBgm();
     rtos_disableIrqMask(RTOS_IRQ_VCOUNT);
@@ -344,16 +359,24 @@ void App::HandleTrigger(RomBrowserStateTrigger trigger, RomBrowserState newState
     switch (trigger)
     {
         case RomBrowserStateTrigger::None:
-        case RomBrowserStateTrigger::Launch:
         case RomBrowserStateTrigger::GotoSettingsScreen:
         {
+            break;
+        }
+        case RomBrowserStateTrigger::Launch:
+        {
+            // the picker or the menu goes with the launch: a refused one comes back to the
+            // browser, and the sheet must not stay up over it
+            auto previousState = _romBrowserController.GetStateMachine().GetPreviousState();
+            if (previousState == RomBrowserState::SavePicker || previousState == RomBrowserState::Menu)
+                _dialogPresenter.CloseDialog();
             break;
         }
         case RomBrowserStateTrigger::LaunchRefused:
         {
             // the browser is back where it was, so say why the game did not start
             if (_toast)
-                _toast->Show("需要 DSi 或 3DS");
+                _toast->Show(_romBrowserController.GetLaunchRefusedText());
             break;
         }
         case RomBrowserStateTrigger::ShowGameInfo:
@@ -434,6 +457,16 @@ void App::HandleTrigger(RomBrowserStateTrigger trigger, RomBrowserState newState
         case RomBrowserStateTrigger::HideAbout:
         {
             HandleHideAboutTrigger();
+            break;
+        }
+        case RomBrowserStateTrigger::ShowSavePicker:
+        {
+            HandleShowSavePickerTrigger();
+            break;
+        }
+        case RomBrowserStateTrigger::HideSavePicker:
+        {
+            HandleHideSavePickerTrigger();
             break;
         }
         case RomBrowserStateTrigger::Navigate:
@@ -590,6 +623,21 @@ void App::HandleHideMenuTrigger()
         _romBrowserBottomScreenView->Focus(_focusManager);
 }
 
+void App::HandleShowSavePickerTrigger()
+{
+    auto savePickerViewModel = SharedPtr<SavePickerViewModel>::MakeShared(&_romBrowserController);
+    auto savePickerDialog = SavePickerBottomSheetView::CreateShared(
+        std::move(savePickerViewModel), &_theme->GetMaterialColorScheme(), _theme->GetFontRepository());
+    _dialogPresenter.ShowDialog(std::move(savePickerDialog));
+}
+
+void App::HandleHideSavePickerTrigger()
+{
+    _dialogPresenter.CloseDialog();
+    if (!_dialogPresenter.GetOldFocus())
+        _romBrowserBottomScreenView->Focus(_focusManager);
+}
+
 // An entry picked from the menu takes the menu's sheet with it. Closing it and
 // showing the next sheet in the same frame is fine: the presenter keeps the
 // new one waiting until the old one has slid out, and Update holds input off
@@ -642,7 +690,6 @@ void App::HandleFolderLoadDoneTrigger()
         displayMode,
         _theme->GetThemeFileIconFactory(),
         _theme->GetRomBrowserViewFactory(),
-        _theme->GetFontRepository(),
         &_theme->GetMaterialColorScheme());
     _romBrowserTopScreenView->InitVram(_subVramContext);
     _romBrowserBottomScreenView->RomBrowserViewModelInvalidated(_mainVramContext);
@@ -677,7 +724,6 @@ void App::HandleChangeDisplayModeTrigger(RomBrowserState newState)
         displayMode,
         _theme->GetThemeFileIconFactory(),
         _theme->GetRomBrowserViewFactory(),
-        _theme->GetFontRepository(),
         &_theme->GetMaterialColorScheme());
     _romBrowserTopScreenView->InitVram(_subVramContext);
     _romBrowserBottomScreenView->RomBrowserViewModelInvalidated(_mainVramContext);
@@ -908,20 +954,12 @@ void App::VBlank()
     {
         rtos_ackIrqMask(RTOS_IRQ_VCOUNT);
         rtos_enableIrqMask(RTOS_IRQ_VCOUNT);
+        // the boot page's empty scheme, so the vcount irq has one if the theme selector left a match on
+        _mainObjPltt.VBlank();
+        // from the next vblank the irq walks the palettes, so a frame the main loop misses keeps its colors
+        rtos_setIrqFunc(RTOS_IRQ_VBLANK, [] (u32 mask) { ((App*)gProcessManager.GetRunningProcess())->VBlankIrq(); });
         _vcountIrqStarted = true;
     }
-    // Left alone from the moment the top half is queued until the mirror is
-    // handed back, which is wider than the frame the palette is actually the
-    // other screen's - on the first of those frames nothing has been mirrored
-    // yet, since that happens further down this same function. Wider on
-    // purpose, for the reason in Draw: too narrow writes into a saved image.
-    // Runs during the boot page too: its scheme is empty then, so it writes no
-    // palette row and leaves the page's own, but it is what arms the scanline
-    // walk the vcount irq performs - which fires from the first frame when the
-    // theme selector left the match line enabled, and would otherwise walk a
-    // null scheme and hang.
-    if (!_screenshot.IsMirroringMainEngine())
-        _mainObjPltt.VBlank();
 
     if (_topBackground)
         _topBackground->VBlank();

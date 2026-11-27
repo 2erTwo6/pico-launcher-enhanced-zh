@@ -14,9 +14,26 @@ public:
         , _fileName(romBrowserController->GetDeleteRomFileName())
     {
         const char* saveFileName = romBrowserController->GetDeleteSaveFileName();
-        if (saveFileName && saveFileName[0] != 0)
-            mini_snprintf(_detailLine, sizeof(_detailLine), romBrowserController->DeleteKeepsSave()
-                ? "存档 %s 会保留" : "存档 %s 也会被删除", saveFileName);
+        // a save kept with an emulator's rom never has slots, see RequestDeleteSelected
+        int extraSaves = (int)romBrowserController->GetDeleteExtraSaveCount();
+        bool hasSave = saveFileName && saveFileName[0] != 0;
+        _detailEndLine[0] = 0;
+        // the save's name gets the line to itself and what happens to it goes on the
+        // next one: a long name is cut short, never the part that says what is deleted
+        if (hasSave)
+            mini_snprintf(_detailLine, sizeof(_detailLine), "存档 %s", saveFileName);
+        if (hasSave && romBrowserController->DeleteKeepsSave())
+            mini_snprintf(_detailEndLine, sizeof(_detailEndLine), "将保留");
+        else if (hasSave && extraSaves == 1)
+            mini_snprintf(_detailEndLine, sizeof(_detailEndLine), "另有 1 个存档位也会删除");
+        else if (hasSave && extraSaves > 1)
+            mini_snprintf(_detailEndLine, sizeof(_detailEndLine), "另有 %d 个存档位也会删除", extraSaves);
+        else if (hasSave)
+            mini_snprintf(_detailEndLine, sizeof(_detailEndLine), "也会被删除");
+        else if (extraSaves == 1)
+            mini_snprintf(_detailLine, sizeof(_detailLine), "1 个存档位也会被删除");
+        else if (extraSaves > 1)
+            mini_snprintf(_detailLine, sizeof(_detailLine), "%d 个存档位也会被删除", extraSaves);
         else
             _detailLine[0] = 0;
     }
@@ -24,6 +41,7 @@ public:
     const char16_t* GetTitle() const override { return u"删除游戏？"; }
     const char* GetNameLine() const override { return _fileName.GetString(); }
     const char* GetDetailLine() const override { return _detailLine; }
+    const char* GetDetailEndLine() const override { return _detailEndLine; }
 
     void Confirm() override
     {
@@ -39,4 +57,5 @@ private:
     IRomBrowserController* _romBrowserController;
     String<char, 256> _fileName;
     char _detailLine[280];
+    char _detailEndLine[40];
 };
