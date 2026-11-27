@@ -56,17 +56,18 @@
 
 // Rank, name and count on one line, the count against the right edge so the
 // three numbers line up and read as a column. The count carries the game's play
-// time after it when there is any, "12x  3h20".
+// time after it when there is any, "12次 3时20": 80 px holds "999次 999时59" in
+// the dot-matrix font, 12 px per Chinese character.
 #define ROW_FIRST_Y         82
 #define ROW_SPACING         14
 #define RANK_X              20
 #define RANK_WIDTH          12
 #define NAME_X              32
-#define NAME_WIDTH          132
+#define NAME_WIDTH          116
 // a whole file name, with "Last: " before it on the last row
 #define NAME_MAX_CHARS      (FF_LFN_BUF + 6)
-#define COUNT_X             172
-#define COUNT_WIDTH         64
+#define COUNT_X             156
+#define COUNT_WIDTH         80
 
 #define LAST_Y              132
 #define LAST_ICON_X         20

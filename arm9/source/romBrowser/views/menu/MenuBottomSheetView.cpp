@@ -52,10 +52,10 @@
 #define STATE_WIDTH         34
 #define STATE_DY            7
 
-// In the save picker's entries, which have no icon: "16/11" takes 19 of the 24 px,
-// leaving the name 76, about 14 characters.
+// In the save picker's entries, which have no icon: "16/11" takes 30 of the 32 px
+// in the dot-matrix font, leaving the name 68, enough for "+ 新建存档".
 #define SAVE_PICKER_NAME_DX 8
-#define DATE_WIDTH          24
+#define DATE_WIDTH          32
 
 // The recents list's highlight sprite: 64 px wide, laid end to end.
 #define SELECTOR_WIDTH      64
@@ -246,7 +246,7 @@ MenuBottomSheetView::MenuBottomSheetView(SharedPtr<MenuViewModel> viewModel,
     _isDsGame = _viewModel->IsDsGame();
     u32 newSaveSlot = _viewModel->GetNewSaveSlot();
     char newSaveText[16];
-    mini_snprintf(newSaveText, sizeof(newSaveText), "存档 %u", newSaveSlot);
+    mini_snprintf(newSaveText, sizeof(newSaveText), "存档%u", newSaveSlot);
     for (int i = 0; i < ITEM_COUNT; i++)
     {
         const char* stateText = i == ITEM_NEW_SAVE && newSaveSlot != 0 ? newSaveText
